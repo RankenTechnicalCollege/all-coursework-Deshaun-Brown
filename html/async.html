@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html Lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Objects</title>
+  
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</head>
+<body>
+<button id="brewButton" class="btn btn-primary">Brew Coffee</button>
+<button id="toastButton" class="btn btn-warning">Make Toast</button>
+<button id="juiceButton" class="btn btn-success">Pour Juice</button>
+
+<p id="brewStatus">Coffee status: Idle</p>
+<p id="toastStatus">Toast status: Idle</p>
+<p id="juiceStatus">Juice status: Idle</p>
+
+<script>
+    const $ = (id) => document.  getElementById(id);
+
+$("brewButton").addEventListener("click", function(){
+     const status = $("brewStatus");
+      status.textContent = "Coffee status: Loading...";
+      setTimeout(() => {
+        status.textContent = "Coffee status: Brewed ☕";
+      }, 3000);
+    });
+
+    document.getElementById("toastButton").addEventListener("click", function () {
+      const status = $("toastStatus");
+      status.textContent = "Toast status: Loading...";
+      setTimeout(() => {
+        status.textContent = "Toast status: Toasted 🍞";
+      }, 2000);
+    });
+
+    document.getElementById("juiceButton").addEventListener("click", function () {
+      const status = $("juiceStatus");
+      status.textContent = "Juice status: Loading...";
+      setTimeout(() => {
+        status.textContent = "Juice status: Poured 🧃";
+      }, 1000);
+    });
+
+</script>
+
+
+</body>
+</html>
