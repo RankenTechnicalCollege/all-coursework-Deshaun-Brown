@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html Lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Objects</title>
+    <script type="module" src="stringToolbox.js" defer> </script>
+    <script type="module">
+  import {
+    VowelCount,
+    ReverseString,
+    CapitalizeWords,
+    WordCount,
+    ConcatenateStrings
+  } from './StringToolbox.js';
+
+  window.runToolbox = async function() {
+    const str1 = document.getElementById('input1').value;
+    const str2 = document.getElementById('input2').value;
+
+    const vowelCount = await VowelCount(str1);
+    const reversed = await ReverseString(str1);
+    const capitalized = await CapitalizeWords(str1);
+    const wordCount = await WordCount(str1);
+    const concatenated = await ConcatenateStrings(str1, str2);
+
+    const results = `
+      <p><strong>Vowel Count:</strong> ${vowelCount}</p>
+      <p><strong>Reversed:</strong> ${reversed}</p>
+      <p><strong>Capitalized:</strong> ${capitalized}</p>
+      <p><strong>Word Count:</strong> ${wordCount}</p>
+      <p><strong>Concatenated:</strong> ${concatenated}</p>
+    `;
+
+    document.getElementById('output').innerHTML = results;
+  };
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- index.html -->
+<input type="text" id="input1" placeholder="Enter first string" />
+<input type="text" id="input2" placeholder="Enter second string (optional)" />
+<button onclick="runToolbox()">Run Toolbox</button>
+
+<div id="output"></div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>
