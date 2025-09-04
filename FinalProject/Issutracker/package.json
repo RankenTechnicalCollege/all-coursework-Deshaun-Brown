@@ -1,0 +1,19 @@
+{
+  "name": "issutracker",
+  "version": "1.0.0",
+  "description": "Issue Tracker for tracking software bugs during the software development life cycle.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "start-dev:": "nodemon index.js"
+  },
+  "keywords": [
+    "Issue",
+    "Tracker",
+    "Deshaun",
+    "Brown"
+  ],
+  "author": "Deshaun Brown",
+  "license": "MIT"
+}
