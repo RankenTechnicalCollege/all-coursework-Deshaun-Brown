@@ -1,25 +1,44 @@
-
-
-
-// Import the readline module
 import readline from 'readline';
 
-// Create an interface for input and output
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+function generateMultiplicationTable(size) {
+  const cellWidth = 6;
 
-// Prompt the user for two numbers
-rl.question('Enter the first number: ', (num1) => {
-  rl.question('Enter the second number: ', (num2) => {
-    // Convert inputs to numbers and perform multiplication
-    const result = parseFloat(num1) * parseFloat(num2);
+  // Header row
+  let header = ''.padStart(cellWidth);
+  for (let i = 1; i <= size; i++) {
+    header += i.toFixed(0).padStart(cellWidth);
+  }
+  console.log(header);
 
-    // Display the result
-    console.log(`The result of multiplying ${num1} and ${num2} is: ${result}`);
+  // Table rows
+  for (let row = 1; row <= size; row++) {
+    let line = row.toFixed(0).padStart(cellWidth);
+    for (let col = 1; col <= size; col++) {
+      const product = (row * col).toFixed(0).padStart(cellWidth);
+      line += product;
+    }
+    console.log(line);
+  }
+}
 
-    // Close the readline interface
+function runMultiplicationApp() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question('📊 How big do you want the table to be (1–12)? ', (input) => {
+    const size = parseFloat(input);
+
+    if (isNaN(size) || size < 1 || size > 12) {
+      console.log('❌ Invalid input. Please enter a number between 1 and 12.');
+    } else {
+      console.log(`\n✅ Multiplication Table (1 to ${size})\n`);
+      generateMultiplicationTable(Math.floor(size));
+    }
+
     rl.close();
   });
-});
+}
+
+runMultiplicationApp();
