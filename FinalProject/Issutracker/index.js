@@ -1,6 +1,15 @@
 import express from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
+import debug from 'debug';
+
+const debugServer = debug('App:Server');
 
 const app = express();
+
+dotenv.config();
+
+
 
 app.use(express.urlencoded({ extended: true}));
 
