@@ -1,45 +1,39 @@
 import express from 'express';
+import debugUser from 'debug';
 
 const router = express.Router();
+const debugUser = debug('router:userRouter');
 
-import debug from 'debug';
+router.use(express.urlencoded({ extended: false }));
 
-const debugUser = debug('app:user');
+ const usersArray = []; // Uncomment if using in-memory array
 
-router.use(express.urlencoded({ extended: true}));
-
-//FIXME: use this array to store user data in for now
-//we will replace this with a database in a later assignment
-const userArray = [];
-
-router.length('/list', (req,res) => {
-    res.json(usersArray);
+router.get('/list', (req, res) => {
+  res.json(usersArray);
+  // FIXME: fetch user by ID and send response as JSON
 });
 
-router.get("/:userId", (req,res) => {
-    //Reads the userId from the URL and stores in a variable
-    const userId = req.params.userId;
-    //FIXME: Get the user from usersArray and send response as JSON
-});
-
-router.post('/register', (req,res) => {
-    //FIXME: Register new user and send response as JSON
-});
-
-router.post('/login', (req,res) => {
-    //FIXME: check user's email and password and send response as JSON
+router.get('/:userId', (req, res) => {
 
 });
 
-router.put('/userId', (req,res) => {
-    //FIXME: update existing user and send response as JSON;
+router.post('/register', (req, res) => {
 
 });
 
-router.delete('/:userId', (req,res) => {
-
-//FIXME: delete user and send response as JSON
+router.post('/login', (req, res) => {
 
 });
 
-export {router as UserRouter};
+router.put('/:userId', (req, res) => {
+    
+});
+
+
+
+
+router.delete('/:userId', (req, res) => {
+  // FIXME: delete user and send response as JSON
+});
+
+export { router as UserRouter };
