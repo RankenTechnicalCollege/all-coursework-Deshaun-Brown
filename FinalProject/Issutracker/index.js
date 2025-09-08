@@ -2,6 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 import debug from 'debug';
+import { BugRouter } from './routes/api/bug.js';
+
+
 
 const debugServer = debug('app:Server');
 
@@ -14,6 +17,8 @@ dotenv.config();
 app.use(express.urlencoded({ extended: true}));
 
 app.use(express.static('frontend/dist'));
+
+app.use('/api/bugs',BugRouter);
 
 const port = process.env.PORT || 3000;
 
