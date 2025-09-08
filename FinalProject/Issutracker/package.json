@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "start-dev:": "nodemon -r dotenv/config index.js"
+    "start-dev": "nodemon -r dotenv/config index.js"
   },
   "keywords": [
     "Issue",
@@ -20,6 +20,7 @@
   "dependencies": {
     "debug": "^4.4.1",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "nanoid": "^5.1.5"
   }
 }

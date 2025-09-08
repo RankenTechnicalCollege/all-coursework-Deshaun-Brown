@@ -1,9 +1,46 @@
+import express from 'express';
 import debug from "debug";
 const debugLog = debug('app:BugRouter');
 
+const router = express.Router();
 router.use(express.urlencoded({ extended: false }));
 
-const bugsArray = [];
+const bugsArray = [
+    {
+        id: 'b1',
+        title: "Can't login",
+        description: 'User cannot login with correct credentials.',
+        stepsToReproduce: '1. Go to login page\n2. Enter valid credentials\n3. Click login',
+        createdAt: '2025-09-01T13:00:00.000Z',
+        classification: 'Authentication',
+        assignedToUserId: 'u1',
+        assignedToUserName: 'Alice Smith',
+        closed: false
+    },
+    {
+        id: 'b2',
+        title: 'Page crashes',
+        description: 'The dashboard page crashes on load.',
+        stepsToReproduce: '1. Login\n2. Go to dashboard',
+        createdAt: '2025-09-02T14:00:00.000Z',
+        classification: 'UI',
+        assignedToUserId: 'u2',
+        assignedToUserName: 'Bob Johnson',
+        closed: false
+    },
+    {
+        id: 'b3',
+        title: 'Typo in footer',
+        description: 'There is a typo in the footer text.',
+        stepsToReproduce: '1. Scroll to bottom of any page',
+        createdAt: '2025-09-03T15:00:00.000Z',
+        classification: 'Content',
+        assignedToUserId: 'u3',
+        assignedToUserName: 'Carol Williams',
+        closed: true,
+        closedOn: '2025-09-04T10:00:00.000Z'
+    }
+];
 
 
 // GET /api/bug/list - Return all bugs as JSON array

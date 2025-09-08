@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import debug from 'debug';
 import { BugRouter } from './routes/api/bug.js';
+import { UserRouter } from './routes/api/user.js';
 
 
 
@@ -20,7 +21,9 @@ app.use(express.static('frontend/dist'));
 
 app.use('/api/bugs',BugRouter);
 
-const port = process.env.PORT || 3000;
+app.use('/api/user', UserRouter);
+
+const port = process.env.PORT || 8080;
 
 app.listen(port,() => {
     console.log(`Server is running on port http://localhost:${port}`);

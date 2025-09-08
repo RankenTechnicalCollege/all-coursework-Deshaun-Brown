@@ -1,14 +1,44 @@
 import express from 'express';
 import debugUser from 'debug';
 
+
 const router = express.Router();
-const debugUser = debug('router:userRouter');
+
 
 router.use(express.urlencoded({ extended: false }));
 
- const usersArray = []; // Uncomment if using in-memory array
+const usersArray = [
+  {
+    id: 'u1',
+    email: 'alice@example.com',
+    password: 'password123',
+    givenName: 'Alice',
+    familyName: 'Smith',
+    role: 'admin',
+    createdAt: '2025-09-01T10:00:00.000Z'
+  },
+  {
+    id: 'u2',
+    email: 'bob@example.com',
+    password: 'password456',
+    givenName: 'Bob',
+    familyName: 'Johnson',
+    role: 'user',
+    createdAt: '2025-09-02T11:00:00.000Z'
+  },
+  {
+    id: 'u3',
+    email: 'carol@example.com',
+    password: 'password789',
+    givenName: 'Carol',
+    familyName: 'Williams',
+    role: 'user',
+    createdAt: '2025-09-03T12:00:00.000Z'
+  }
+];
 
 router.get('/list', (req, res) => {
+    debugUser('GET /api/user/list called');
   res.json(usersArray);
 
 });
