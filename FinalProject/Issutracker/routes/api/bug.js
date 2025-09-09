@@ -1,5 +1,6 @@
 import express from 'express';
 import debug from "debug";
+
 const debugLog = debug('app:BugRouter');
 
 const router = express.Router();

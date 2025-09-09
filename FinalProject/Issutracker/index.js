@@ -2,8 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 import debug from 'debug';
-import { BugRouter } from './routes/api/bug.js';
 import { UserRouter } from './routes/api/user.js';
+import { BugRouter } from './routes/api/bug.js';
 
 
 
@@ -19,9 +19,9 @@ app.use(express.urlencoded({ extended: true}));
 
 app.use(express.static('frontend/dist'));
 
+app.use('/api/user', UserRouter);
 app.use('/api/bugs',BugRouter);
 
-app.use('/api/user', UserRouter);
 
 const port = process.env.PORT || 8080;
 
