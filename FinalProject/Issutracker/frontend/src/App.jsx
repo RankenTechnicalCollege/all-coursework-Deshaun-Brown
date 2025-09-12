@@ -36,7 +36,7 @@ function App() {
                 <li className="list-group-item">Mickey Mouse</li>
                 <li className="list-group-item">Donald Duck</li>
               </ul>
-              <div className="card-footer small text-muted">Use your own user names.</div>
+             
             </div>
           </div>
           <div className="col-md-6">
@@ -50,7 +50,7 @@ function App() {
                 <li className="list-group-item"><a href="#">Text is too small on my 4K monitor.</a></li>
                 <li className="list-group-item"><a href="#">Doesn't work on my iPhone 3.</a></li>
               </ul>
-              <div className="card-footer small text-muted">Use your own bug names.</div>
+              
             </div>
           </div>
         </div>
