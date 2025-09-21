@@ -1,0 +1,250 @@
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" style="background: #000000; background-color: light-dark(#000000, #EDEDED);" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="502px" height="372px" viewBox="-0.5 -0.5 502 372" content="&lt;mxfile&gt;&lt;diagram id=&quot;N76unLsb-VGXKJ4FLWPK&quot; name=&quot;Page-1&quot;&gt;7VpbU+M2FP41mYEHGMcmJHmEhC3MQGEWenvqKPaxoyJbriSThF/fI1nyJcFsMmXZ0BJmwDq6nNsn6fgLvWCSLn8SJJ/f8AhYz/eiZS+Y9nx/NB7hby1YlYK+dzIuJYmgkZXVgnv6DG6glRY0AtkaqDhniuZtYcizDELVkhEh+KI9LOasrTUnidXo1YL7kDDYGPYbjdTc+jVojL4Emsyd5r5ne2YkfEwELzKrj+lBRxERjwc9P/DMp+dP8Pliqn8Oy2kpcTrsOnJOIr5oiUhEckWfYMIZF9Y/Uiiue4OLXjARnKvyKV1OgOmMuGCXS3zp6K28FZCpbSacDMsZT4QVNmLnRSKt6WrlwigXNGUkw9Z5OKcsuiYrXmgNUmGcXOt8zgV95pkiDLv6KMBuoSwqMObNEfd6Joq11MQZIjspxn47p3/i2tYWzywq+GOVTl/PB4nj75zbXiW6JlI5U1widG9E5Nzo0w2Cuc3wOcTZILRAhFa/Vr+YUwX3OQm1YIHbRLuh0tpFbY3JpYlV8MV8sMeGFoSCZWd++lXWcQ8CT0GJFQ6xE44Cixm7/478sRUsajT7XlDK5g0kB0OHNouwpFq8xgM+WEh0wGO0AY+ef8qUTUoLI6d/Fxq152EZiTPsFMnswB8MzDbxmg+HJjpuBj4l+u+fqBbxaqbezv7C4+AqcurQ0lJjOdSJI/q0LvoOhimqcC1nGiacZolTNxPrBmxv6vtYj+dvKCieODzr8KHDYhT/MKOlglw+8K+QCx4VYVf0d7J8F+n7eImnPh6ItzGeuZWDhQShce8dlHuARod7nCeIqJJ65uC8N/zWFviRhk6Jggea1kCqBXtrM8/xPiIfa+P2htPeYLrHBoY8TfH2lVVI9x661uIzc1h0nhNXe31OfMTth2Wb2tx4JNUFYDaT+bfv/M+N+BqsGZGSxjT8YCecAqkmRIJs2YuHyF5H2y0tc5K98dILLh4veSHkNa/LGIoerMek1L1VtfwfDVVMlxBdZb+CkK9i/jNSJlK3mb4mXrszPgMVMi6hfnGecc7AxOQNQrTGAjmihEFsnOlkPmLKmJNn3NBGaEWIGL82Uw2v0qR5NImjiRK8DNiZ1aK4vmENj0NmFfkjuCKq0c6JUJaJaZAyW1EvJfm1yb1YrmWwLdPivwXTMt5gWn7BAu+TiduBiWuiLoKYFGwTpW0aNx7Fw3hYbjBsQqR/DrfFz+vUXYUfR931gxcA5bDTBFRFnv8bQDnt/3PqDlJCWcc9W1N3OVaiWMXUPtxMB5cIzD2+UeKCsZ9J+ibE2PtYnNAnyD6WyYJ38r57aG0oAAukqPwCx5UDRWJIgmpTDvBMFWS13y8r+sUwyb6bK7uUNbZ8+SAVzXjniualC6h/+hYXUPDCBbQWeYgScPUEOkHV6iswQwdc1D0bYW1EBbLoTH9LjM2Lr88g+AO/IdnK1Tt1X0oyfJuAV6tWWFL1u1sYn//QCTnuD05te7q0GTKNVaNxBwJfS0zJYmSlo9q7XYuHRmqqr6JbqXFCYQL11FbwUr6sjjtOzTZ14BkGa9XJyDv2mp+gvaTEF/wQ7CrNb5TXFt4oe8bj47HfXgtTk4DaWOvM7OZ6WK4HyG4ffK+tSnswWoNouWYN2CrUL2EYm/VX7+Xw+r8igot/AA==&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs/>
+    <rect fill="#000000" width="100%" height="100%" x="0" y="0" style="fill: light-dark(rgb(0, 0, 0), rgb(237, 237, 237));"/>
+    <g>
+        <g>
+            <path d="M 204 51 L 204 7 Q 204 1 198 1 L 7 1 Q 1 1 1 7 L 1 51" fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+            <path d="M 1 51 L 1 365 Q 1 371 7 371 L 198 371 Q 204 371 204 365 L 204 51" fill="none" stroke="#ffffff" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+            <path d="M 1 51 L 204 51" fill="none" stroke="#ffffff" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+        </g>
+        <g>
+            <g transform="translate(-0.5 -0.5)">
+                <switch>
+                    <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 201px; height: 1px; padding-top: 26px; margin-left: 2px;">
+                            <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                <div style="display: inline-block; font-size: 14px; font-family: &quot;Helvetica&quot;; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                    Bugs
+                                </div>
+                            </div>
+                        </div>
+                    </foreignObject>
+                    <text x="103" y="30" fill="light-dark(#000000, #ffffff)" font-family="&quot;Helvetica&quot;" font-size="14px" text-anchor="middle">
+                        Bugs
+                    </text>
+                </switch>
+            </g>
+        </g>
+        <g>
+            <rect x="1" y="51" width="203" height="320" fill="none" stroke="#ffffff" pointer-events="all" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+        </g>
+        <g>
+            <g transform="translate(-0.5 -0.5)">
+                <switch>
+                    <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 58px; margin-left: 7px;">
+                            <div style="box-sizing: border-box; font-size: 0; text-align: left; color: #000000; ">
+                                <div style="display: inline-block; font-size: 12px; font-family: &quot;Helvetica&quot;; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; white-space: nowrap; ">
+                                    <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                        _id : ObjectId
+                                    </font>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            title : string
+                                            <br/>
+                                        </font>
+                                        <div>
+                                            <div>
+                                                <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                    description : string
+                                                </font>
+                                            </div>
+                                            <div>
+                                                <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                    stepsToReproduce : string
+                                                </font>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            authorOfBug : userId (Objectid)
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            edits:[{
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            DateTime : DateTime
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            opteration : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            }]
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            comments : [{
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            commentAuthor : userId (ObjectId)
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            DateTime : DateTime
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            text : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            }]
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            classification : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            testCases: string[]
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            <span style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                workHoursLog : int[]
+                                            </span>
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            <span style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                fixedInVersion : string
+                                            </span>
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            <span style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                fixedOnDate : DateTime
+                                            </span>
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            <span style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                                closed : boolean
+                                            </span>
+                                        </font>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </foreignObject>
+                    <text x="7" y="70" fill="light-dark(#000000, #ffffff)" font-family="&quot;Helvetica&quot;" font-size="12px">
+                        _id : ObjectId...
+                    </text>
+                </switch>
+            </g>
+        </g>
+        <g>
+            <path d="M 501 211 L 501 167 Q 501 161 495 161 L 287 161 Q 281 161 281 167 L 281 211" fill="#ffffff" stroke="#f8f7f7" stroke-width="2" stroke-miterlimit="10" pointer-events="all" style="fill: light-dark(#ffffff, var(--ge-dark-color, #121212)); stroke: light-dark(rgb(248, 247, 247), rgb(237, 237, 237));"/>
+            <path d="M 281 211 L 281 365 Q 281 371 287 371 L 495 371 Q 501 371 501 365 L 501 211" fill="none" stroke="#f8f7f7" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(248, 247, 247), rgb(237, 237, 237));"/>
+            <path d="M 281 211 L 501 211" fill="none" stroke="#f8f7f7" stroke-width="2" stroke-miterlimit="10" pointer-events="none" style="stroke: light-dark(rgb(248, 247, 247), rgb(237, 237, 237));"/>
+        </g>
+        <g>
+            <g transform="translate(-0.5 -0.5)">
+                <switch>
+                    <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 218px; height: 1px; padding-top: 186px; margin-left: 282px;">
+                            <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                <div style="display: inline-block; font-size: 14px; font-family: &quot;Helvetica&quot;; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                    Users
+                                </div>
+                            </div>
+                        </div>
+                    </foreignObject>
+                    <text x="391" y="190" fill="light-dark(#000000, #ffffff)" font-family="&quot;Helvetica&quot;" font-size="14px" text-anchor="middle">
+                        Users
+                    </text>
+                </switch>
+            </g>
+        </g>
+        <g>
+            <rect x="281" y="211" width="220" height="160" fill="none" stroke="none" pointer-events="all"/>
+        </g>
+        <g>
+            <g transform="translate(-0.5 -0.5)">
+                <switch>
+                    <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe flex-start; width: 1px; height: 1px; padding-top: 218px; margin-left: 287px;">
+                            <div style="box-sizing: border-box; font-size: 0; text-align: left; color: #000000; ">
+                                <div style="display: inline-block; font-size: 12px; font-family: &quot;Helvetica&quot;; color: light-dark(#000000, #ffffff); line-height: 1.2; pointer-events: all; white-space: nowrap; ">
+                                    <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                        _id : ObjectId
+                                    </font>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            email : string
+                                            <br/>
+                                            password : MD5Hash
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            fullName : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            givenName : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            role : string
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            createdBugs : bugId ObjectId[array]
+                                        </font>
+                                    </div>
+                                    <div>
+                                        <font style="color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));">
+                                            assignedBugs : bugId ObjectId[array]
+                                        </font>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </foreignObject>
+                    <text x="287" y="230" fill="light-dark(#000000, #ffffff)" font-family="&quot;Helvetica&quot;" font-size="12px">
+                        _id : ObjectId...
+                    </text>
+                </switch>
+            </g>
+        </g>
+        <g>
+            <path d="M 204 111 L 224 111 Q 234 111 236.08 120.78 L 248.92 181.3 Q 251 191.08 261 191.08 L 281 191.08" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="stroke" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+            <path d="M 208 107 L 208 115 M 212 107 L 212 115" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+            <ellipse cx="269" cy="191.08" rx="3" ry="3" fill="#ffffff" stroke="#ffffff" pointer-events="all" style="fill: light-dark(rgb(255, 255, 255), rgb(18, 18, 18)); stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+            <path d="M 281 187.08 L 273 191.08 L 281 195.08" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all" style="stroke: light-dark(rgb(255, 255, 255), rgb(18, 18, 18));"/>
+        </g>
+    </g>
+    <switch>
+        <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/>
+        <a transform="translate(0,-5)" xlink:href="https://www.drawio.com/doc/faq/svg-export-text-problems" target="_blank">
+            <text text-anchor="middle" font-size="10px" x="50%" y="100%">
+                Text is not SVG - cannot display
+            </text>
+        </a>
+    </switch>
+</svg>
