@@ -1,9 +1,9 @@
 // 1. Add a new developer to the database.
 db.Users.insertOne({
   email: "dev.new@example.com",
-  fullName: "New Developer",
+  fullName: "Spazz Meme",
   password: "5f4dcc3b5aa765d61d8327deb882cf99", // MD5 of 'password'
-  givenName: "New",
+  givenName: "Spazz",
   role: "Developer",
   assignedBugs: [],
   createdBugs: []
@@ -17,7 +17,7 @@ const bugId = db.Bugs.insertOne({
   closed: false
 }).insertedId;
 
-// 3. Assign this bug to a Quality Analyst.
+// 3. Assign this bug to a Quality Analyst. This User Had to be Created first then assigned a bug
 db.Bugs.updateOne(
   { _id: bugId },
   { $set: { assignedTo: db.Users.findOne({ role: "Quality Analyst" })._id } }
