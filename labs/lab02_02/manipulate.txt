@@ -1,0 +1,67 @@
+// 1. Add a new developer to the database.
+db.Users.insertOne({
+  email: "dev.new@example.com",
+  fullName: "New Developer",
+  password: "5f4dcc3b5aa765d61d8327deb882cf99", // MD5 of 'password'
+  givenName: "New",
+  role: "Developer",
+  assignedBugs: [],
+  createdBugs: []
+});
+
+// 2. Add a new bug to the database, only minimum required fields.
+const bugId = db.Bugs.insertOne({
+  title: "Sample bug minimal",
+  description: "Minimal bug description",
+  authorOfBug: db.Users.findOne({ email: "dev.new@example.com" })._id,
+  closed: false
+}).insertedId;
+
+// 3. Assign this bug to a Quality Analyst.
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $set: { assignedTo: db.Users.findOne({ role: "Quality Analyst" })._id } }
+);
+
+// 4. Add a comment to this bug.
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $push: { comments: {
+    comment: "QA review started",
+    operationAuthor: db.Users.findOne({ role: "Quality Analyst" })._id,
+    dateTime: new Date(),
+    text: "Investigating the bug."
+  } } }
+);
+
+// 5. Add a test case to this bug.
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $push: { testCases: "Verify minimal bug scenario" } }
+);
+
+// 6. Add hours to this bug.
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $push: { workHoursLog: 3 } }
+);
+
+// 7. Mark the bug fixed by you with the time and version.
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $set: {
+    fixedInVersion: "v1.0.2",
+    closed: false,
+    fixedOnDate: new Date(),
+    fixedBy: db.Users.findOne({ email: "dev.new@example.com" })._id
+  } }
+);
+
+// 8. Close the bug (retain information).
+db.Bugs.updateOne(
+  { _id: bugId },
+  { $set: {
+    closed: true,
+    closedOnDate: new Date()
+  } }
+);
