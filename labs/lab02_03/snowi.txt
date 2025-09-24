@@ -14,9 +14,11 @@ db.movies.insertOne({
   cast: ["Jack Black", "Anya Taylor-Joy", "Chris Pratt", "Charlie Day"]
 });
 
+
 // 2. Retrieve the first 5 movies from the "movies" collection,
 //  sorted in ascending order based on the movie title.
 db.movies.find().sort({ title: 1 }).limit(5)
+
 
 // 3. Update the title of the movie with the title 
 // "The Lion King" to "The Lion King (1994)".
@@ -25,39 +27,64 @@ db.movies.updateOne(
   { $set: { title: "The Lion King (1994)" } }
 );
 
+
 // 4. Delete the movie with the title
 // "The Lion King (1994)" from the "movies" collection.
 db.movies.deleteOne({ title: "The Lion King (1994)" })
+
 
 /* 5. Create a new user document in the "users" collection with the following details:
   Name: "John Doe"
   Email: "johndoe@example.com"
   Password: "123456”
 */
+db.users.insertOne({
+  name: "John Doe",
+  email: "johndoe@example.com",
+  password: "123456"
+});
 
 
-/* 6. Retrieve all users from the "users" collection, including only their names and email addresses, sorted in descending order based on the user's name.
+/* 6. Retrieve all users from the "users" collection,
+ including only their names and 
+ email addresses, sorted in 
+ descending order based on the user's name.
   hint**
   db.users.find({},{fieldsToInclude:1})
 */
+db.users.find(
+  {},
+  { name: 1, email: 1, _id: 0 }
+).sort({ name: -1 });
 
-// 7. Create a new user document
+
+// 7. Create a new user document, ask about db.users 7.
 db.users.insertOne({ name: "John Doe", email: "johndoe@example.com", password: "123456" });
+
 
 // 8. Retrieve all users, only names and emails, sorted descending by name
 db.users.find({}, { name: 1, email: 1, _id: 0 }).sort({ name: -1 });
 
+
 // 9. Update the name of the user with the email "johndoe@example.com" to "John Smith"
 db.users.updateOne({ email: "johndoe@example.com" }, { $set: { name: "John Smith" } });
+
 
 // 10. Update the password of the user with the email "johndoe@example.com" to "newpassword"
 db.users.updateOne({ email: "johndoe@example.com" }, { $set: { password: "newpassword" } });
 
+
 // 11. Delete the user with the email "johndoe@example.com"
 db.users.deleteOne({ email: "johndoe@example.com" });
 
-// 12. Create a new comment document in the "comments" collection
-db.comments.insertOne({ movieId: ObjectId("Existing_MOVIE_ID"), name: "Existing_UserName", text: "Great movie! Highly recommend it." });
+
+// 12. Create a new comment document in the "comments" collection ask about 12.
+db.comments.insertOne({
+  movieId: ObjectId("573a1390f29313caabcd446f"),
+  name: "Ned Stark",
+  text: "Great movie! Highly recommend it."
+});
+
 
 // 13. Retrieve all comments, including the movie's title
 db.comments.aggregate([
@@ -65,69 +92,100 @@ db.comments.aggregate([
   { $project: { _id: 1, text: 1, "movie.title": 1 } }
 ]);
 
-// 14. Update the text of the comment with the ID ObjectId("COMMENT_ID")
-db.comments.updateOne({ _id: ObjectId("COMMENT_ID") }, { $set: { text: "This movie is a masterpiece!" } });
+
+// 14. Update the text of the comment with the ID ObjectId("COMMENT_ID") ask about 14.
+db.comments.updateOne(
+  { _id: ObjectId("68d3a1f2cd592750d8fd1a01") }, // Replace with actual comment ID
+  { $set: { text: "This movie is a masterpiece!" } }
+);
+
 
 // 15. Delete the comment with the ID ObjectId("COMMENT_ID")
-db.comments.deleteOne({ _id: ObjectId("COMMENT_ID") });
+db.comments.deleteOne({ _id: ObjectId("68d3a1f2cd592750d8fd1a01") }); // Replace with actual comment ID
+
 
 // 16. Retrieve all movies with the genre "Comedy"
 db.movies.find({ genres: "Comedy" });
 
+
 // 17. Update the genre of the movie with the ID ObjectId("MOVIE_ID") to include "Drama"
-db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $addToSet: { genres: "Drama" } });
+db.movies.updateOne(
+  { _id: ObjectId("573a1390f29313caabcd446f") },
+  { $addToSet: { genres: "Drama" } }
+);
+
 
 // 18. Delete all movies where the year is less than 2000
 db.movies.deleteMany({ year: { $lt: 2000 } });
 
+
 // 19. Retrieve movies released between 2010 and 2020, sorted descending by rating
 db.movies.find({ year: { $gte: 2010, $lte: 2020 } }).sort({ rating: -1 });
+
 
 // 20. Update the year of all movies released in 2015 to 2016
 db.movies.updateMany({ year: 2015 }, { $set: { year: 2016 } });
 
+
 // 21. Delete all movies directed by "Christopher Nolan"
 db.movies.deleteMany({ directors: "Christopher Nolan" });
+
 
 // 22. Add a user with the email address: admin@example.com
 db.users.insertOne({ email: "admin@example.com" });
 
+
 // 23. Retrieve all users who have the word "admin" in their email address
 db.users.find({ email: { $regex: /admin/ } });
+
 
 // 24. Delete all comments made by the user with the email "johndoe@example.com"
 db.comments.deleteMany({ name: "John Doe" });
 
+
 // 25. Create an index on the "title" field of the "movies" collection
 db.movies.createIndex({ title: 1 });
+
 
 // 26. Retrieve all movies where the title starts with the letter "A"
 db.movies.find({ title: { $regex: /^A/ } });
 
+
 // 27. Update the genre of all movies with the genre "Action" to "Adventure"
 db.movies.updateMany({ genres: "Action" }, { $set: { "genres.$": "Adventure" } });
+
 
 // 28. Update a user with a lastLogin property
 db.users.updateOne({ name: "Evan" }, { $set: { lastLogin: new Date("December 17, 1995") } });
 
+
 // 29. Delete all users who have not logged in for the past 6 months
 var sixMonthsAgo = new Date();
+
+
 sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 db.users.deleteMany({ lastLogin: { $lt: sixMonthsAgo } });
+
 
 // 30. Retrieve the average rating of all movies
 db.movies.aggregate([
   { $group: { _id: null, avgRating: { $avg: "$rating" } } }
 ]);
 
+
 // 31. Update the rating of the movie with the ID ObjectId("MOVIE_ID") to 4.5
-db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $set: { rating: 4.5 } });
+db.movies.updateOne(
+  { _id: ObjectId("573a1390f29313caabcd446f") },
+  { $set: { rating: 4.5 } }
+);
 
 // 32. Insert a comment with a word "spoiler" in the text
 db.comments.insertOne({ text: "spoiler: The hero wins!" });
 
+
 // 33. Delete all comments that contain the word "spoiler" in their text
 db.comments.deleteMany({ text: { $regex: /spoiler/ } });
+
 
 // 34. Retrieve the count of movies for each genre
 db.movies.aggregate([
@@ -135,5 +193,101 @@ db.movies.aggregate([
   { $group: { _id: "$genres", count: { $sum: 1 } } }
 ]);
 
+
 // 35. Update the title of all movies to uppercase
+db.movies.updateMany({}, [ { $set: { title: { $toUpper: "$title" } } } ]);
+
+// 7. Update the name of the user with the email "johndoe@example.com" to "John Smith".
+db.users.updateOne({ email: "johndoe@example.com" }, { $set: { name: "John Smith" } });
+
+// 8. Update the password of the user with the email "johndoe@example.com" to "newpassword".
+db.users.updateOne({ email: "johndoe@example.com" }, { $set: { password: "newpassword" } });
+
+// 9. Delete the user with the email "johndoe@example.com" from the "users" collection.
+db.users.deleteOne({ email: "johndoe@example.com" });
+
+// 10. Create a new comment document in the "comments" collection.
+db.comments.insertOne({
+  movieId: ObjectId("Existing_MOVIE_ID"),
+  name: "Existing_UserName",
+  text: "Great movie! Highly recommend it."
+});
+
+// 11. Retrieve all comments from the "comments" collection, including the movie's title.
+db.comments.aggregate([
+  { $lookup: { from: "movies", localField: "movieId", foreignField: "_id", as: "movie" } },
+  { $project: { _id: 1, text: 1, "movie.title": 1 } }
+]);
+
+// 12. Update the text of the comment with the ID ObjectId("COMMENT_ID") to "This movie is a masterpiece!"
+db.comments.updateOne({ _id: ObjectId("COMMENT_ID") }, { $set: { text: "This movie is a masterpiece!" } });
+
+// 13. Delete the comment with the ID ObjectId("COMMENT_ID") from the "comments" collection.
+db.comments.deleteOne({ _id: ObjectId("COMMENT_ID") });
+
+// 14. Retrieve all movies from the "movies" collection that have the genre "Comedy" listed in their genres array.
+db.movies.find({ genres: "Comedy" });
+
+// 15. Update the genre of the movie with the ID ObjectId("MOVIE_ID") to include "Drama" in addition to the existing genres.
+db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $addToSet: { genres: "Drama" } });
+
+// 16. Delete all movies from the "movies" collection where the year is less than 2000.
+db.movies.deleteMany({ year: { $lt: 2000 } });
+
+// 17. Retrieve the movies released between the years 2010 and 2020, sorted in descending order based on the movie's rating.
+db.movies.find({ year: { $gte: 2010, $lte: 2020 } }).sort({ rating: -1 });
+
+// 18. Update the year of all movies released in 2015 to 2016.
+db.movies.updateMany({ year: 2015 }, { $set: { year: 2016 } });
+
+// 19. Delete all movies directed by "Christopher Nolan" from the "movies" collection.
+db.movies.deleteMany({ directors: "Christopher Nolan" });
+
+// 20. Add a user with the email address: admin@example.com
+db.users.insertOne({ email: "admin@example.com" });
+
+// 21. Retrieve all users who have the word "admin" in their email address.
+db.users.find({ email: { $regex: /admin/ } });
+
+// 22. Delete all comments made by the user with the email "johndoe@example.com".
+db.comments.deleteMany({ name: "John Doe" });
+
+// 23. Create an index on the "title" field of the "movies" collection.
+db.movies.createIndex({ title: 1 });
+
+// 24. Retrieve all movies where the title starts with the letter "A".
+db.movies.find({ title: { $regex: /^A/ } });
+
+// 25. Update the genre of all movies with the genre "Action" to "Adventure".
+db.movies.updateMany({ genres: "Action" }, { $set: { "genres.$": "Adventure" } });
+
+// 26. Update a user with a lastLogin property.
+db.users.updateOne({ name: "Evan" }, { $set: { lastLogin: new Date("December 17, 1995") } });
+
+// 27. Delete all users who have not logged in for the past 6 months.
+var sixMonthsAgo = new Date();
+sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+db.users.deleteMany({ lastLogin: { $lt: sixMonthsAgo } });
+
+// 28. Retrieve the average rating of all movies in the "movies" collection.
+db.movies.aggregate([
+  { $group: { _id: null, avgRating: { $avg: "$rating" } } }
+]);
+
+// 29. Update the rating of the movie with the ID ObjectId("MOVIE_ID") to 4.5.
+db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $set: { rating: 4.5 } });
+
+// 30. Insert a comment with a word “spoiler” in the text.
+db.comments.insertOne({ text: "spoiler: The hero wins!" });
+
+// 31. Delete all comments that contain the word "spoiler" in their text.
+db.comments.deleteMany({ text: { $regex: /spoiler/ } });
+
+// 32. Retrieve the count of movies for each genre in the "movies" collection.
+db.movies.aggregate([
+  { $unwind: "$genres" },
+  { $group: { _id: "$genres", count: { $sum: 1 } } }
+]);
+
+// 33. Update the title of all movies to uppercase.
 db.movies.updateMany({}, [ { $set: { title: { $toUpper: "$title" } } } ]);
