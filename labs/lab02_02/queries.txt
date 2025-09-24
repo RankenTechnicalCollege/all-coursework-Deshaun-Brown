@@ -1,13 +1,13 @@
 // 1. List all of the Bugs that your Users created.
-db.Bugs.find({ authorOfBug: "<yourUserId>" })
+db.Bugs.find({ authorOfBug: ObjectId(Number/UserId/UserId) })
 
 // 2. List all of the Bugs that you are assigned to.
-db.Bugs.find({ assignedTo: "<yourUserId>" })
+db.Bugs.find({ assignedTo: ObjectId(Number/UserId) })
 
 // 3. List all of the Bugs that you created or are assigned to.
-db.Bugs.find({ $or: [ { authorOfBug: "<yourUserId>" }, { assignedTo: "<yourUserId>" } ] })
+db.Bugs.find({ $or: [ { authorOfBug: ObjectId(Number/UserId) }, { assignedTo: ObjectId(Number/UserId) } ] })
 
-// 4. List all of the Bugs that are unclassified.
+// 4. List all of the Bugs that are unclassified. If the field is null or empty/"" it will return nothing, its looking for a documentation without a classification:
 db.Bugs.find({ classification: { $exists: false } })
 
 // 5. List all of the Bugs that have been approved by a Business Analyst, but are not closed.
@@ -17,7 +17,7 @@ db.Bugs.find({ approvedByBA: true, status: { $ne: "closed" } })
 db.Bugs.find({ status: "fixed", status: { $ne: "closed" } })
 
 // 7. List all of the Bugs that do not have steps to reproduce.
-db.Bugs.find({ stepsToReproduce: { $exists: false } })
+    db.Bugs.find({ stepsToReproduce: { $exists: false } })
 
 // 8. List all of the Bugs that do not have test cases.
 db.Bugs.find({ testCases: { $exists: false } })
@@ -28,23 +28,8 @@ db.Bugs.find({ hours: { $exists: false }, work: { $exists: false }, labor: { $ex
 
 // 10. List all Bugs, with the number of comments for each bug. (Include Bugs with no comments)
 db.Bugs.aggregate([
-	{
-		$lookup: {
-			from: "comments",
-			localField: "_id",
-			foreignField: "bugId",
-			as: "comments"
-		}
-	},
-	{
-		$addFields: {
-			commentCount: { $size: "$comments" }
-		}
-	},
-	{
-		$project: { comments: 0 }
-	}
-])
+    {
+        $project:{count:{$size:"$comments"}}}])
 
 // 11. List all Bugs, with the total number of hours worked on each bug. (Include Bugs with no recorded hours)
 db.Bugs.aggregate([

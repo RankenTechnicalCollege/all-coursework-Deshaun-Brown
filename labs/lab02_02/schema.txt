@@ -52,10 +52,7 @@ db.Bugs.insertMany([
       }
     ],
     classification: "UI Bug",
-    testCases: [
-      { name: "Click login", status: "fail" },
-      { name: "Check console logs", status: "pass" }
-    ],
+    testCases: ["Click login", "Check console logs"],
     workHoursLog: [2],
     fixedInVersion: "v1.0.1",
     dateTime: ISODate("2025-09-20T09:00:00Z"),
@@ -72,7 +69,7 @@ db.Bugs.insertMany([
     edits: [],
     comments: [],
     classification: "Validation",
-  testCases: [],
+    testCases: [],
     workHoursLog: [],
     fixedInVersion: "",
     dateTime: ISODate("2025-09-21T08:00:00Z"),
