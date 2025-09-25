@@ -208,10 +208,11 @@ db.users.deleteOne({ email: "johndoe@example.com" });
 
 // 10. Create a new comment document in the "comments" collection.
 db.comments.insertOne({
-  movieId: ObjectId("Existing_MOVIE_ID"),
+  movieId: ObjectId("573a1390f29313caabcd4323"),
   name: "Existing_UserName",
   text: "Great movie! Highly recommend it."
 });
+
 
 // 11. Retrieve all comments from the "comments" collection, including the movie's title.
 db.comments.aggregate([
@@ -220,16 +221,16 @@ db.comments.aggregate([
 ]);
 
 // 12. Update the text of the comment with the ID ObjectId("COMMENT_ID") to "This movie is a masterpiece!"
-db.comments.updateOne({ _id: ObjectId("COMMENT_ID") }, { $set: { text: "This movie is a masterpiece!" } });
+db.comments.updateOne({ _id: ObjectId("5a9427648b0beebeb69579e7") }, { $set: { text: "This movie is a masterpiece!" } });
 
 // 13. Delete the comment with the ID ObjectId("COMMENT_ID") from the "comments" collection.
-db.comments.deleteOne({ _id: ObjectId("COMMENT_ID") });
+db.comments.deleteOne({ _id: ObjectId("5a9427648b0beebeb69579e7") });
 
 // 14. Retrieve all movies from the "movies" collection that have the genre "Comedy" listed in their genres array.
 db.movies.find({ genres: "Comedy" });
 
 // 15. Update the genre of the movie with the ID ObjectId("MOVIE_ID") to include "Drama" in addition to the existing genres.
-db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $addToSet: { genres: "Drama" } });
+db.movies.updateOne({ _id: ObjectId("573a1390f29313caabcd4323") }, { $addToSet: { genres: "Drama" } });
 
 // 16. Delete all movies from the "movies" collection where the year is less than 2000.
 db.movies.deleteMany({ year: { $lt: 2000 } });
@@ -262,10 +263,10 @@ db.movies.find({ title: { $regex: /^A/ } });
 db.movies.updateMany({ genres: "Action" }, { $set: { "genres.$": "Adventure" } });
 
 // 26. Update a user with a lastLogin property.
-db.users.updateOne({ name: "Evan" }, { $set: { lastLogin: new Date("December 17, 1995") } });
+db.users.updateOne({ name: "Davos Seaworth" First and last name is needed }, { $set: { lastLogin: new Date("December 17, 1995") } });
 
-// 27. Delete all users who have not logged in for the past 6 months.
-var sixMonthsAgo = new Date();
+ Delete all users who have not logged in for the past 6 months.
+let sixMonthsAgo = new Date();
 sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 db.users.deleteMany({ lastLogin: { $lt: sixMonthsAgo } });
 
@@ -275,7 +276,7 @@ db.movies.aggregate([
 ]);
 
 // 29. Update the rating of the movie with the ID ObjectId("MOVIE_ID") to 4.5.
-db.movies.updateOne({ _id: ObjectId("MOVIE_ID") }, { $set: { rating: 4.5 } });
+db.movies.updateOne({ _id: ObjectId("573a1391f29313caabcd70b4") }, { $set: { rating: 4.5 } });
 
 // 30. Insert a comment with a word “spoiler” in the text.
 db.comments.insertOne({ text: "spoiler: The hero wins!" });
