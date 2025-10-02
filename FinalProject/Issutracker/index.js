@@ -15,11 +15,12 @@ dotenv.config();
 
 
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 
 app.use(express.static('frontend/dist'));
 
-app.use('/api/user', UserRouter);
+app.use('/api/users', UserRouter);
 app.use('/api/bugs',BugRouter);
 
 

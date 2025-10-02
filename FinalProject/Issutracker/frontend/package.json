@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node index.js",
-    "start-dev:": "nodemon -r dotenv/config index.js"
+    "dev:": "nodemon -r dotenv/config index.js"
   },
   "dependencies": {
     "lodash": "^4.17.21",

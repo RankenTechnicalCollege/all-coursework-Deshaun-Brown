@@ -1,181 +1,262 @@
 import express from 'express';
-import debug from "debug";
+import debug from 'debug';
+import { connect, newId } from '../../database.js';
 
-const debugLog = debug('app:BugRouter');
-
+const debugBug = debug('app:BugRouter');
 const router = express.Router();
+
+router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
 
-const bugsArray = [
-    {
-        id: 'b1',
-        title: "Can't login",
-        description: 'User cannot login with correct credentials.',
-        stepsToReproduce: '1. Go to login page\n2. Enter valid credentials\n3. Click login',
-        createdAt: '2025-09-01T13:00:00.000Z',
-        classification: 'Authentication',
-        assignedToUserId: 'u1',
-        assignedToUserName: 'Alice Smith',
-        closed: false
-    },
-    {
-        id: 'b2',
-        title: 'Page crashes',
-        description: 'The dashboard page crashes on load.',
-        stepsToReproduce: '1. Login\n2. Go to dashboard',
-        createdAt: '2025-09-02T14:00:00.000Z',
-        classification: 'UI',
-        assignedToUserId: 'u2',
-        assignedToUserName: 'Bob Johnson',
-        closed: false
-    },
-    {
-        id: 'b3',
-        title: 'Typo in footer',
-        description: 'There is a typo in the footer text.',
-        stepsToReproduce: '1. Scroll to bottom of any page',
-        createdAt: '2025-09-03T15:00:00.000Z',
-        classification: 'Content',
-        assignedToUserId: 'u3',
-        assignedToUserName: 'Carol Williams',
-        closed: true,
-        closedOn: '2025-09-04T10:00:00.000Z'
-    }
-];
-
-
-// GET /api/bug/list - Return all bugs as JSON array
-router.get('/list', (req, res) => {
-    debugLog('GET /api/bug/list called');
-    res.json(bugsArray);
+// GET /api/bugs - Return all bugs as JSON array
+router.get('/', async (req, res) => {
+  try {
+    debugBug('GET /api/bugs called');
+    const db = await connect();
+    const bugs = await db.collection('bugs').find({}).toArray();
+    debugBug(`Found ${bugs.length} bugs`);
+    res.json(bugs);
+  } catch (error) {
+    debugBug('Error fetching bugs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// GET /api/bug/:bugId - Return a specific bug by ID
-router.get('/:bugId', (req, res) => {
+
+// GET /api/bugs/:bugId - Return a specific bug by ID
+router.get('/:bugId', async (req, res) => {
+  try {
     const { bugId } = req.params;
-    debugLog(`GET /api/bug/${bugId} called`);
-    const bug = bugsArray.find(b => String(b.id) === String(bugId));
-    if (bug) {
-        res.json(bug);
-    } else {
-        res.status(404).type('text/plain').send(`Bug ${bugId} not found.`);
+    debugBug(`GET /api/bugs/${bugId} called`);
+    
+    const db = await connect();
+    const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
+    
+    if (!bug) {
+      debugBug(`Bug ${bugId} not found`);
+      return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
+    
+    debugBug(`Bug ${bugId} found`);
+    res.json(bug);
+  } catch (error) {
+    debugBug('Error fetching bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
-import { nanoid } from 'nanoid';
-
-// POST /api/bug/new - Create a new bug
-router.post('/new', (req, res) => {
-    debugLog('POST /api/bug/new called');
+// POST /api/bugs - Create a new bug
+router.post('/', async (req, res) => {
+  try {
+    debugBug('POST /api/bugs called');
     const { title, description, stepsToReproduce } = req.body;
-    let invalid = [];
+    
+    // Validate required fields
+    const invalid = [];
     if (!title || typeof title !== 'string' || !title.trim()) invalid.push('title');
     if (!description || typeof description !== 'string' || !description.trim()) invalid.push('description');
     if (!stepsToReproduce || typeof stepsToReproduce !== 'string' || !stepsToReproduce.trim()) invalid.push('stepsToReproduce');
+    
     if (invalid.length > 0) {
-        debugLog(`Invalid fields: ${invalid.join(', ')}`);
-        return res.status(400).type('text/plain').send(`Invalid or missing: ${invalid.join(', ')}`);
+      debugBug(`Invalid fields: ${invalid.join(', ')}`);
+      return res.status(400).json({ error: `Invalid or missing: ${invalid.join(', ')}` });
     }
+    
+    const db = await connect();
+    
+    // Create new bug
     const newBug = {
-        id: nanoid(),
-        title: title.trim(),
-        description: description.trim(),
-        stepsToReproduce: stepsToReproduce.trim(),
-        createdAt: new Date().toISOString()
+      title: title.trim(),
+      description: description.trim(),
+      stepsToReproduce: stepsToReproduce.trim(),
+      createdAt: new Date(),
+      closed: false
     };
-    bugsArray.push(newBug);
-    debugLog(`New bug created: ${newBug.id}`);
-    res.status(200).type('text/plain').send('New bug reported!');
+    
+    const result = await db.collection('bugs').insertOne(newBug);
+    debugBug(`New bug created with ID: ${result.insertedId}`);
+    res.status(200).json({ message: "New bug reported!", bugId: result.insertedId });
+  } catch (error) {
+    debugBug('Error creating bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
-// PUT /api/bug/:bugId - Update an existing bug's data
-router.put('/:bugId', (req, res) => {
+// PATCH /api/bugs/:bugId - Update existing bug
+router.patch('/:bugId', async (req, res) => {
+  try {
     const { bugId } = req.params;
-    debugLog(`PUT /api/bug/${bugId} called`);
-    const bug = bugsArray.find(b => String(b.id) === String(bugId));
+    debugBug(`PATCH /api/bugs/${bugId} called`);
+    
+    const db = await connect();
+    const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
+    
     if (!bug) {
-        debugLog(`Bug ${bugId} not found for update`);
-        return res.status(404).type('text/plain').send(`Bug ${bugId} not found.`);
+      debugBug(`Bug ${bugId} not found for update`);
+      return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
+    
     const { title, description, stepsToReproduce } = req.body;
-    if (title && typeof title === 'string' && title.trim()) bug.title = title.trim();
-    if (description && typeof description === 'string' && description.trim()) bug.description = description.trim();
-    if (stepsToReproduce && typeof stepsToReproduce === 'string' && stepsToReproduce.trim()) bug.stepsToReproduce = stepsToReproduce.trim();
-    bug.lastUpdated = new Date().toISOString();
-    debugLog(`Bug ${bugId} updated`);
-    res.status(200).type('text/plain').send('Bug updated!');
+    const updateFields = {};
+    
+    if (title && typeof title === 'string' && title.trim()) {
+      updateFields.title = title.trim();
+    }
+    if (description && typeof description === 'string' && description.trim()) {
+      updateFields.description = description.trim();
+    }
+    if (stepsToReproduce && typeof stepsToReproduce === 'string' && stepsToReproduce.trim()) {
+      updateFields.stepsToReproduce = stepsToReproduce.trim();
+    }
+    
+    updateFields.lastUpdated = new Date();
+    
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $set: updateFields }
+    );
+    
+    debugBug(`Bug ${bugId} updated`);
+    res.status(200).json({ message: `Bug ${bugId} updated!`, bugId: bugId });
+  } catch (error) {
+    debugBug('Error updating bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
-// PUT /api/bug/:bugId/classify - Update bug classification
-router.put('/:bugId/classify', (req, res) => {
+// PATCH /api/bugs/:bugId/classify - Update bug classification
+router.patch('/:bugId/classify', async (req, res) => {
+  try {
     const { bugId } = req.params;
-    debugLog(`PUT /api/bug/${bugId}/classify called`);  
+    debugBug(`PATCH /api/bugs/${bugId}/classify called`);
+    
     const { classification } = req.body;
+    
     if (!classification || typeof classification !== 'string' || !classification.trim()) {
-        debugLog('Invalid or missing classification');
-        return res.status(400).type('text/plain').send('Invalid or missing: classification');
+      debugBug('Invalid classification provided');
+      return res.status(400).json({ error: 'Invalid or missing: classification' });
     }
-    const bug = bugsArray.find(b => String(b.id) === String(bugId));
+    
+    const db = await connect();
+    const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
+    
     if (!bug) {
-        debugLog(`Bug ${bugId} not found for classify`);
-        return res.status(404).type('text/plain').send(`Bug ${bugId} not found.`);
+      debugBug(`Bug ${bugId} not found for classification`);
+      return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-    bug.classification = classification.trim();
-    bug.classifiedOn = new Date().toISOString();
-    bug.lastUpdated = new Date().toISOString();
-    debugLog(`Bug ${bugId} classified as ${bug.classification}`);
-    res.status(200).type('text/plain').send('Bug classified!');
+    
+    const updateFields = {
+      classification: classification.trim(),
+      classifiedOn: new Date(),
+      lastUpdated: new Date()
+    };
+    
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $set: updateFields }
+    );
+    
+    debugBug(`Bug ${bugId} classified`);
+    res.status(200).json({ message: `Bug ${bugId} classified!`, bugId: bugId });
+  } catch (error) {
+    debugBug('Error classifying bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
-// PUT /api/bug/:bugId/assign - Assign bug to a user
-router.put('/:bugId/assign', (req, res) => {
+// PATCH /api/bugs/:bugId/assign - Assign bug to user
+router.patch('/:bugId/assign', async (req, res) => {
+  try {
     const { bugId } = req.params;
-    debugLog(`PUT /api/bug/${bugId}/assign called`);
+    debugBug(`PATCH /api/bugs/${bugId}/assign called`);
+    
     const { assignedToUserId, assignedToUserName } = req.body;
-    let invalid = [];
+    
+    const invalid = [];
     if (!assignedToUserId || typeof assignedToUserId !== 'string' || !assignedToUserId.trim()) invalid.push('assignedToUserId');
     if (!assignedToUserName || typeof assignedToUserName !== 'string' || !assignedToUserName.trim()) invalid.push('assignedToUserName');
+    
     if (invalid.length > 0) {
-        debugLog(`Invalid fields: ${invalid.join(', ')}`);
-        return res.status(400).type('text/plain').send(`Invalid or missing: ${invalid.join(', ')}`);
+      debugBug(`Invalid fields: ${invalid.join(', ')}`);
+      return res.status(400).json({ error: `Invalid or missing: ${invalid.join(', ')}` });
     }
-    const bug = bugsArray.find(b => String(b.id) === String(bugId));
+    
+    const db = await connect();
+    const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
+    
     if (!bug) {
-        debugLog(`Bug ${bugId} not found for assign`);
-        return res.status(404).type('text/plain').send(`Bug ${bugId} not found.`);
+      debugBug(`Bug ${bugId} not found for assignment`);
+      return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-    bug.assignedToUserId = assignedToUserId.trim();
-    bug.assignedToUserName = assignedToUserName.trim();
-    bug.assignedOn = new Date().toISOString();
-    bug.lastUpdated = new Date().toISOString();
-    debugLog(`Bug ${bugId} assigned to ${bug.assignedToUserName}`);
-    res.status(200).type('text/plain').send('Bug assigned!');
+    
+    const updateFields = {
+      assignedToUserId: assignedToUserId.trim(),
+      assignedToUserName: assignedToUserName.trim(),
+      assignedOn: new Date(),
+      lastUpdated: new Date()
+    };
+    
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $set: updateFields }
+    );
+    
+    debugBug(`Bug ${bugId} assigned`);
+    res.status(200).json({ message: `Bug ${bugId} assigned!`, bugId: bugId });
+  } catch (error) {
+    debugBug('Error assigning bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
-// PUT /api/bug/:bugId/close - Close a bug
-router.put('/:bugId/close', (req, res) => {
+// PATCH /api/bugs/:bugId/close - Close bug
+router.patch('/:bugId/close', async (req, res) => {
+  try {
     const { bugId } = req.params;
-    debugLog(`PUT /api/bug/${bugId}/close called`);
+    debugBug(`PATCH /api/bugs/${bugId}/close called`);
+    
     const { closed } = req.body;
-    if (typeof closed === 'undefined' || typeof closed !== 'boolean') {
-        debugLog('Invalid or missing closed');
-        return res.status(400).type('text/plain').send('Invalid or missing: closed');
+    
+    if (closed === undefined || typeof closed !== 'boolean') {
+      debugBug('Invalid closed value provided');
+      return res.status(400).json({ error: 'Invalid or missing: closed (must be boolean)' });
     }
-    const bug = bugsArray.find(b => String(b.id) === String(bugId));
+    
+    const db = await connect();
+    const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
+    
     if (!bug) {
-        debugLog(`Bug ${bugId} not found for close`);
-        return res.status(404).type('text/plain').send(`Bug ${bugId} not found.`);
+      debugBug(`Bug ${bugId} not found for closing`);
+      return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-    bug.closed = closed;
-    bug.closedOn = new Date().toISOString();
-    bug.lastUpdated = new Date().toISOString();
-    debugLog(`Bug ${bugId} closed: ${closed}`);
-    res.status(200).type('text/plain').send('Bug closed!');
+    
+    const updateFields = {
+      closed: closed,
+      lastUpdated: new Date()
+    };
+    
+    if (closed) {
+      updateFields.closedOn = new Date();
+    } else {
+      updateFields.closedOn = null;
+    }
+    
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $set: updateFields }
+    );
+    
+    debugBug(`Bug ${bugId} closed status updated`);
+    res.status(200).json({ message: `Bug ${bugId} closed!`, bugId: bugId });
+  } catch (error) {
+    debugBug('Error closing bug:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export { router as BugRouter };

@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "start-dev": "nodemon -r dotenv/config index.js"
+    "dev": "nodemon -r dotenv/config index.js"
   },
   "keywords": [
     "Issue",
@@ -16,11 +16,13 @@
     "Brown"
   ],
   "author": "Deshaun Brown",
-  "license": "MIT",
+"license": "MIT",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "debug": "^4.4.1",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "mongodb": "^6.20.0",
     "nanoid": "^5.1.5"
   }
 }
