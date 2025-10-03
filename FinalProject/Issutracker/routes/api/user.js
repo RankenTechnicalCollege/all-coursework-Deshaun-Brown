@@ -1,48 +1,64 @@
 import express from 'express';
 import debug from 'debug';
 import bcrypt from 'bcrypt';
-import { connect, newId } from '../../database.js';
+import {connect, newId} from '../../database.js';
+
 
 const debugUser = debug('app:UserRouter');
 const router = express.Router();
 
 router.use(express.json());
-router.use(express.urlencoded({ extended: false }));
+router.use(express.urlencoded({extended:false}));
+
 
 // GET /api/users - Return all users as JSON array
+router.get('/', async (req, res) =>{
+  try{debugUser('GET/api/users called');
+    const db = await connect();
+    const users = await db.collection('users').find({}).toArray();
+    debugUser(`Found ${users.length} users`);
+    res.json(users);
+  }catch (error){
+    debugUser('Error fetching users:', error);
+    res.status(500).json({ error:'Internal server error'});
+  }
+});
+
+// GET /api users = Return all users as JSON array
 router.get('/', async (req, res) => {
-    try {
-        debugUser('GET /api/users called');
-        const db = await connect();
-        const users = await db.collection('users').find({}).toArray();
-        debugUser(`Found ${users.length} users`);
-        res.json(users);
-    } catch (error) {
-        debugUser('Error fetching users:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+  try{
+    debugUser('GET /api/users called');
+    const db = await connect();
+    const users = await db.collection('users').find({}).toArray();
+    debugUser(`Found ${users.length} users`);
+    res.json(users);
+  } catch (error){
+    debugUser('Error fetching users:',error);
+    res.status(500).json({error: 'Internal server error'});
+    
+  }
 });
 
 // GET /api/users/:userId - Return a specific user by ID
 router.get('/:userId', async (req, res) => {
-    try {
-        const { userId } = req.params;
-        debugUser(`GET /api/users/${userId} called`);
-        
-        const db = await connect();
-        const user = await db.collection('users').findOne({ _id: newId(userId) });
-        
-        if (!user) {
-            debugUser(`User ${userId} not found`);
-            return res.status(404).json({ error: `User ${userId} not found.` });
-        }
-        
-        debugUser(`User ${userId} found`);
-        res.json(user);
-    } catch (error) {
-        debugUser('Error fetching user:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+  try{
+    const { userId} = req.params;
+    debugUser(`GET /api/users/${userId} called`);
+  
+  const db = await connect();
+const user = await db.collection('users').findOne({_id: newId(userId)});
+
+if (!user) {
+  debugUser(`User ${userId} not found`);
+  return res.status(404).json({ error: `User ${userId} not found.`});
+}
+
+debugUser(`User ${userId} found`);
+res.json(user);
+  } catch (error) {
+    debugUser('Error fetching user:',error);
+    res.status(500).json({ error: 'Internal server error'});
+  }
 });
 
 // POST /api/users/register - Register a new user
