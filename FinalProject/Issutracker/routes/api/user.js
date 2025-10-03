@@ -11,18 +11,7 @@ router.use(express.json());
 router.use(express.urlencoded({extended:false}));
 
 
-// GET /api/users - Return all users as JSON array
-router.get('/', async (req, res) =>{
-  try{debugUser('GET/api/users called');
-    const db = await connect();
-    const users = await db.collection('users').find({}).toArray();
-    debugUser(`Found ${users.length} users`);
-    res.json(users);
-  }catch (error){
-    debugUser('Error fetching users:', error);
-    res.status(500).json({ error:'Internal server error'});
-  }
-});
+
 
 // GET /api users = Return all users as JSON array
 router.get('/', async (req, res) => {
@@ -64,7 +53,7 @@ res.json(user);
 // POST /api/users/register - Register a new user
 router.post('/register', async (req, res) => {
   try {
-    debugUser('POST /api/users/register called');
+    debugUser('POST /api/Users/register called');
     const { email, password, fullName, givenName, familyName, role } = req.body;
     
     // Validate required fields
@@ -84,7 +73,7 @@ router.post('/register', async (req, res) => {
     const db = await connect();
     
     // Check if email already exists
-    const existingUser = await db.collection('users').findOne({ email: email.trim() });
+    const existingUser = await db.collection('Users').findOne({ email: email.trim() });
     if (existingUser) {
       debugUser(`Email ${email} already registered`);
       return res.status(400).json({ error: "Email already registered." });
@@ -105,7 +94,7 @@ router.post('/register', async (req, res) => {
       createdAt: new Date()
     };
     
-    const result = await db.collection('users').insertOne(newUser);
+    const result = await db.collection('Users').insertOne(newUser);
     debugUser(`New user registered with ID: ${result.insertedId}`);
     res.status(200).json({ message: "New user registered!", userId: result.insertedId });
   } catch (error) {

@@ -219,7 +219,7 @@ router.patch('/:bugId/close', async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/close called`);
-    
+
     const { closed } = req.body;
     
     if (closed === undefined || typeof closed !== 'boolean') {

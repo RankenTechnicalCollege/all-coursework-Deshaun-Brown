@@ -14,7 +14,7 @@ let _db = null;
 async function connect() {
     if (!_db) {
         const dbUrl = process.env.DB_URL;
-        const dbName = process.env.DB_NAME || 'Issuetracker';
+        const dbName = process.env.DB_NAME || 'IssueTracker';
         const client = await MongoClient.connect(dbUrl);
         _db = client.db(dbName);
         debugDb('Connected to MongoDB');
