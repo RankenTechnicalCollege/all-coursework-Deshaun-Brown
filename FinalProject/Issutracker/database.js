@@ -9,6 +9,14 @@ const debugDb = debug('app:Database');
 
 const newId = (str) => ObjectId.createFromHexString(str);
 
+const isValidId = (str) => {
+  try {
+    return ObjectId.isValid(str) && str.length === 24;
+  } catch {
+    return false;
+  }
+};
+
 let _db = null;
 
 async function connect() {
@@ -22,6 +30,7 @@ async function connect() {
     return _db;
 }
 
+
 async function ping(){
     const db = await connect();
     await db.command({ ping: 1 });
@@ -29,6 +38,6 @@ async function ping(){
 }
 
 
-export { newId, connect, ping};
+export { newId, connect, ping, isValidId};
 
-ping();
+//ping();

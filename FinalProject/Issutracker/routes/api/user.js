@@ -1,8 +1,8 @@
 import express from 'express';
 import debug from 'debug';
 import bcrypt from 'bcrypt';
-import {connect, newId} from '../../database.js';
-
+import {connect, newId, isValidId} from '../../database.js';
+import joi from 'joi';
 
 const debugUser = debug('app:UserRouter');
 const router = express.Router();
@@ -10,13 +10,34 @@ const router = express.Router();
 router.use(express.json());
 router.use(express.urlencoded({extended:false}));
 
+// Define Joi schemas
+const registerSchema = joi.object({
+  email: joi.string().email().required(),
+  password: joi.string().min(6).required(),
+  givenName: joi.string().min(1).required(),
+  familyName: joi.string().min(1).required(),
+  role: joi.string().valid('admin', 'user', 'developer', 'tester').required()
+});
 
+const loginSchema = joi.object({
+  email: joi.string().email().required(),
+  password: joi.string().required()
+});
+
+const updateSchema = joi.object({
+  email: joi.string().email().optional(),
+  password: joi.string().min(6).optional(),
+  fullName: joi.string().min(1).optional(),
+  givenName: joi.string().min(1).optional(),
+  familyName: joi.string().min(1).optional(),
+  role: joi.string().valid('admin', 'user', 'developer', 'tester').optional()
+});
 
 
 // GET /api users = Return all users as JSON array
 router.get('/', async (req, res) => {
   try{
-    debugUser('GET /api/users called');
+    console.log('GET /api/users called');
     const db = await connect();
     const users = await db.collection('users').find({}).toArray();
     debugUser(`Found ${users.length} users`);
@@ -28,22 +49,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+
+
+
 // GET /api/users/:userId - Return a specific user by ID
 router.get('/:userId', async (req, res) => {
   try{
     const { userId} = req.params;
     debugUser(`GET /api/users/${userId} called`);
+    
+    // Validate ObjectId
+    if (!isValidId(userId)) {
+      debugUser(`Invalid ObjectId: ${userId}`);
+      return res.status(404).json({ error: `userId ${userId} is not a valid ObjectId.` });
+    }
   
-  const db = await connect();
-const user = await db.collection('users').findOne({_id: newId(userId)});
+    const db = await connect();
+    const user = await db.collection('users').findOne({_id: newId(userId)});
 
-if (!user) {
-  debugUser(`User ${userId} not found`);
-  return res.status(404).json({ error: `User ${userId} not found.`});
-}
+    if (!user) {
+      debugUser(`User ${userId} not found`);
+      return res.status(404).json({ error: `User ${userId} not found.`});
+    }
 
-debugUser(`User ${userId} found`);
-res.json(user);
+    debugUser(`User ${userId} found`);
+    res.json(user);
   } catch (error) {
     debugUser('Error fetching user:',error);
     res.status(500).json({ error: 'Internal server error'});
@@ -53,27 +83,21 @@ res.json(user);
 // POST /api/users/register - Register a new user
 router.post('/register', async (req, res) => {
   try {
-    debugUser('POST /api/Users/register called');
-    const { email, password, fullName, givenName, familyName, role } = req.body;
-    
-    // Validate required fields
-    const invalid = [];
-    if (!email || typeof email !== 'string' || !email.trim()) invalid.push('email');
-    if (!password || typeof password !== 'string' || !password.trim()) invalid.push('password');
-    if (!fullName || typeof fullName !== 'string' || !fullName.trim()) invalid.push('fullName');
-    if (!givenName || typeof givenName !== 'string' || !givenName.trim()) invalid.push('givenName');
-    if (!familyName || typeof familyName !== 'string' || !familyName.trim()) invalid.push('familyName');
-    if (!role || typeof role !== 'string' || !role.trim()) invalid.push('role');
-    
-    if (invalid.length > 0) {
-      debugUser(`Invalid fields: ${invalid.join(', ')}`);
-      return res.status(400).json({ error: `Invalid or missing: ${invalid.join(', ')}` });
+    debugUser('POST /api/users/register called');
+    h
+    // Validate request body with Joi
+    const validateResult = registerSchema.validate(req.body);
+    if (validateResult.error) {
+      debugUser(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
     }
+    
+    const { email, password, givenName, familyName, role } = validateResult.value;
     
     const db = await connect();
     
     // Check if email already exists
-    const existingUser = await db.collection('Users').findOne({ email: email.trim() });
+    const existingUser = await db.collection('users').findOne({ email: email });
     if (existingUser) {
       debugUser(`Email ${email} already registered`);
       return res.status(400).json({ error: "Email already registered." });
@@ -81,20 +105,19 @@ router.post('/register', async (req, res) => {
     
     // Hash password
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password.trim(), saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     // Create new user
     const newUser = {
-      email: email.trim(),
+      email: email,
       password: hashedPassword,
-      fullName: fullName.trim(),
-      givenName: givenName.trim(),
-      familyName: familyName.trim(),
-      role: role.trim(),
+      givenName: givenName,
+      familyName: familyName,
+      role: role,
       createdAt: new Date()
     };
     
-    const result = await db.collection('Users').insertOne(newUser);
+    const result = await db.collection('users').insertOne(newUser);
     debugUser(`New user registered with ID: ${result.insertedId}`);
     res.status(200).json({ message: "New user registered!", userId: result.insertedId });
   } catch (error) {
@@ -107,12 +130,15 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     debugUser('POST /api/users/login called');
-    const { email, password } = req.body;
     
-    if (!email || !password) {
-      debugUser('Missing email or password');
-      return res.status(400).json({ error: "Please enter your login credentials." });
+    // Validate request body with Joi
+    const validateResult = loginSchema.validate(req.body);
+    if (validateResult.error) {
+      debugUser(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
     }
+    
+    const { email, password } = validateResult.value;
     
     const db = await connect();
     const user = await db.collection('users').findOne({ email: email });
@@ -144,6 +170,19 @@ router.patch('/:userId', async (req, res) => {
     const { userId } = req.params;
     debugUser(`PATCH /api/users/${userId} called`);
     
+    // Validate ObjectId
+    if (!isValidId(userId)) {
+      debugUser(`Invalid ObjectId: ${userId}`);
+      return res.status(404).json({ error: `userId ${userId} is not a valid ObjectId.` });
+    }
+    
+    // Validate request body with Joi
+    const validateResult = updateSchema.validate(req.body);
+    if (validateResult.error) {
+      debugUser(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+    
     const db = await connect();
     const user = await db.collection('users').findOne({ _id: newId(userId) });
     
@@ -152,24 +191,24 @@ router.patch('/:userId', async (req, res) => {
       return res.status(404).json({ error: `User ${userId} not found.` });
     }
     
-    const { password, fullName, givenName, familyName, role } = req.body;
+    const { password, fullName, givenName, familyName, role } = validateResult.value;
     const updateFields = {};
     
-    if (password && typeof password === 'string' && password.trim()) {
+    if (password) {
       const saltRounds = 10;
-      updateFields.password = await bcrypt.hash(password.trim(), saltRounds);
+      updateFields.password = await bcrypt.hash(password, saltRounds);
     }
-    if (fullName && typeof fullName === 'string' && fullName.trim()) {
-      updateFields.fullName = fullName.trim();
+    if (fullName) {
+      updateFields.fullName = fullName;
     }
-    if (givenName && typeof givenName === 'string' && givenName.trim()) {
-      updateFields.givenName = givenName.trim();
+    if (givenName) {
+      updateFields.givenName = givenName;
     }
-    if (familyName && typeof familyName === 'string' && familyName.trim()) {
-      updateFields.familyName = familyName.trim();
+    if (familyName) {
+      updateFields.familyName = familyName;
     }
-    if (role && typeof role === 'string' && role.trim()) {
-      updateFields.role = role.trim();
+    if (role) {
+      updateFields.role = role;
     }
     
     updateFields.lastUpdated = new Date();
@@ -192,6 +231,12 @@ router.delete('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     debugUser(`DELETE /api/users/${userId} called`);
+    
+    // Validate ObjectId
+    if (!isValidId(userId)) {
+      debugUser(`Invalid ObjectId: ${userId}`);
+      return res.status(404).json({ error: `userId ${userId} is not a valid ObjectId.` });
+    }
     
     const db = await connect();
     const user = await db.collection('users').findOne({ _id: newId(userId) });

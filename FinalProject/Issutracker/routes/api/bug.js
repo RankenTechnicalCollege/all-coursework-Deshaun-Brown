@@ -1,12 +1,39 @@
 import express from 'express';
 import debug from 'debug';
-import { connect, newId } from '../../database.js';
+import { connect, newId, isValidId } from '../../database.js';
+import joi from 'joi';
 
 const debugBug = debug('app:BugRouter');
 const router = express.Router();
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
+
+// Define Joi schemas
+const createBugSchema = joi.object({
+  title: joi.string().min(1).required(),
+  description: joi.string().min(1).required(),
+  stepsToReproduce: joi.string().min(1).required()
+});
+
+const updateBugSchema = joi.object({
+  title: joi.string().min(1).optional(),
+  description: joi.string().min(1).optional(),
+  stepsToReproduce: joi.string().min(1).optional()
+});
+
+const classifySchema = joi.object({
+  classification: joi.string().valid('bug', 'feature', 'enhancement', 'documentation', 'duplicate', 'invalid').required()
+});
+
+const assignSchema = joi.object({
+  assignedToUserId: joi.string().required(),
+  assignedToUserName: joi.string().min(1).required()
+});
+
+const closeSchema = joi.object({
+  closed: joi.boolean().required()
+});
 
 // GET /api/bugs - Return all bugs as JSON array
 router.get('/', async (req, res) => {
@@ -29,6 +56,12 @@ router.get('/:bugId', async (req, res) => {
     const { bugId } = req.params;
     debugBug(`GET /api/bugs/${bugId} called`);
     
+    // Validate ObjectId
+    if (!isValidId(bugId)) {
+      debugBug(`Invalid ObjectId: ${bugId}`);
+      return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
+    }
+    
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
     
@@ -50,26 +83,23 @@ router.get('/:bugId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     debugBug('POST /api/bugs called');
-    const { title, description, stepsToReproduce } = req.body;
     
-    // Validate required fields
-    const invalid = [];
-    if (!title || typeof title !== 'string' || !title.trim()) invalid.push('title');
-    if (!description || typeof description !== 'string' || !description.trim()) invalid.push('description');
-    if (!stepsToReproduce || typeof stepsToReproduce !== 'string' || !stepsToReproduce.trim()) invalid.push('stepsToReproduce');
-    
-    if (invalid.length > 0) {
-      debugBug(`Invalid fields: ${invalid.join(', ')}`);
-      return res.status(400).json({ error: `Invalid or missing: ${invalid.join(', ')}` });
+    // Validate request body with Joi
+    const validateResult = createBugSchema.validate(req.body);
+    if (validateResult.error) {
+      debugBug(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
     }
+    
+    const { title, description, stepsToReproduce } = validateResult.value;
     
     const db = await connect();
     
     // Create new bug
     const newBug = {
-      title: title.trim(),
-      description: description.trim(),
-      stepsToReproduce: stepsToReproduce.trim(),
+      title: title,
+      description: description,
+      stepsToReproduce: stepsToReproduce,
       createdAt: new Date(),
       closed: false
     };
@@ -90,6 +120,19 @@ router.patch('/:bugId', async (req, res) => {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId} called`);
     
+    // Validate ObjectId
+    if (!isValidId(bugId)) {
+      debugBug(`Invalid ObjectId: ${bugId}`);
+      return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
+    }
+    
+    // Validate request body with Joi
+    const validateResult = updateBugSchema.validate(req.body);
+    if (validateResult.error) {
+      debugBug(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+    
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
     
@@ -98,17 +141,17 @@ router.patch('/:bugId', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    const { title, description, stepsToReproduce } = req.body;
+    const { title, description, stepsToReproduce } = validateResult.value;
     const updateFields = {};
     
-    if (title && typeof title === 'string' && title.trim()) {
-      updateFields.title = title.trim();
+    if (title) {
+      updateFields.title = title;
     }
-    if (description && typeof description === 'string' && description.trim()) {
-      updateFields.description = description.trim();
+    if (description) {
+      updateFields.description = description;
     }
-    if (stepsToReproduce && typeof stepsToReproduce === 'string' && stepsToReproduce.trim()) {
-      updateFields.stepsToReproduce = stepsToReproduce.trim();
+    if (stepsToReproduce) {
+      updateFields.stepsToReproduce = stepsToReproduce;
     }
     
     updateFields.lastUpdated = new Date();
@@ -133,12 +176,20 @@ router.patch('/:bugId/classify', async (req, res) => {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/classify called`);
     
-    const { classification } = req.body;
-    
-    if (!classification || typeof classification !== 'string' || !classification.trim()) {
-      debugBug('Invalid classification provided');
-      return res.status(400).json({ error: 'Invalid or missing: classification' });
+    // Validate ObjectId
+    if (!isValidId(bugId)) {
+      debugBug(`Invalid ObjectId: ${bugId}`);
+      return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
     }
+    
+    // Validate request body with Joi
+    const validateResult = classifySchema.validate(req.body);
+    if (validateResult.error) {
+      debugBug(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+    
+    const { classification } = validateResult.value;
     
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
@@ -149,7 +200,7 @@ router.patch('/:bugId/classify', async (req, res) => {
     }
     
     const updateFields = {
-      classification: classification.trim(),
+      classification: classification,
       classifiedOn: new Date(),
       lastUpdated: new Date()
     };
@@ -174,16 +225,20 @@ router.patch('/:bugId/assign', async (req, res) => {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/assign called`);
     
-    const { assignedToUserId, assignedToUserName } = req.body;
-    
-    const invalid = [];
-    if (!assignedToUserId || typeof assignedToUserId !== 'string' || !assignedToUserId.trim()) invalid.push('assignedToUserId');
-    if (!assignedToUserName || typeof assignedToUserName !== 'string' || !assignedToUserName.trim()) invalid.push('assignedToUserName');
-    
-    if (invalid.length > 0) {
-      debugBug(`Invalid fields: ${invalid.join(', ')}`);
-      return res.status(400).json({ error: `Invalid or missing: ${invalid.join(', ')}` });
+    // Validate ObjectId
+    if (!isValidId(bugId)) {
+      debugBug(`Invalid ObjectId: ${bugId}`);
+      return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
     }
+    
+    // Validate request body with Joi
+    const validateResult = assignSchema.validate(req.body);
+    if (validateResult.error) {
+      debugBug(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+    
+    const { assignedToUserId, assignedToUserName } = validateResult.value;
     
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
@@ -194,8 +249,8 @@ router.patch('/:bugId/assign', async (req, res) => {
     }
     
     const updateFields = {
-      assignedToUserId: assignedToUserId.trim(),
-      assignedToUserName: assignedToUserName.trim(),
+      assignedToUserId: assignedToUserId,
+      assignedToUserName: assignedToUserName,
       assignedOn: new Date(),
       lastUpdated: new Date()
     };
@@ -219,13 +274,21 @@ router.patch('/:bugId/close', async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/close called`);
-
-    const { closed } = req.body;
     
-    if (closed === undefined || typeof closed !== 'boolean') {
-      debugBug('Invalid closed value provided');
-      return res.status(400).json({ error: 'Invalid or missing: closed (must be boolean)' });
+    // Validate ObjectId
+    if (!isValidId(bugId)) {
+      debugBug(`Invalid ObjectId: ${bugId}`);
+      return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
     }
+    
+    // Validate request body with Joi
+    const validateResult = closeSchema.validate(req.body);
+    if (validateResult.error) {
+      debugBug(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+    
+    const { closed } = validateResult.value;
     
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
