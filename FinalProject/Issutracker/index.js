@@ -21,7 +21,7 @@ app.use(express.static('frontend/dist'));
 app.use('/api/users', UserRouter);
 app.use('/api/bugs', BugRouter);
 app.use('/api/bugs/:bugId/comments', CommentRouter);
-app.use('/api/bugs/:bugId/tests', TestRouter);
+app.use('/api/bugs/:bugId/testCases', TestRouter);
 
 
 const port = process.env.PORT || 8080;

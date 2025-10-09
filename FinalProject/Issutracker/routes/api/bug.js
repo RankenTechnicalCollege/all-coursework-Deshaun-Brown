@@ -23,7 +23,7 @@ const updateBugSchema = joi.object({
 });
 
 const classifySchema = joi.object({
-  classification: joi.string().valid('bug', 'feature', 'enhancement', 'documentation', 'duplicate', 'invalid').required()
+  classification: joi.string().valid('bug', 'feature', 'enhancement', 'documentation', 'duplicate', 'invalid','Validation').required()
 });
 
 const assignSchema = joi.object({
@@ -170,11 +170,11 @@ router.patch('/:bugId', async (req, res) => {
 });
 
 
-// PATCH /api/bugs/:bugId/classify - Update bug classification
-router.patch('/:bugId/classify', async (req, res) => {
+// PATCH /api/bugs/:bugId/classification - Update bug classification
+router.patch('/:bugId/classification', async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId}/classify called`);
+    debugBug(`PATCH /api/bugs/${bugId}/classification called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {

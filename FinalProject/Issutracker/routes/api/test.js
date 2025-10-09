@@ -17,10 +17,7 @@ const createTestSchema = joi.object({
 });
 
 const updateTestSchema = joi.object({
-  testName: joi.string().min(1).optional(),
   testDescription: joi.string().min(1).optional(),
-  expectedResult: joi.string().min(1).optional(),
-  actualResult: joi.string().min(1).optional(),
   passed: joi.boolean().optional(),
   testedBy: joi.string().min(1).optional()
 });
@@ -29,7 +26,7 @@ const updateTestSchema = joi.object({
 router.get('/', async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`GET /api/bugs/${bugId}/tests called`);
+    debugTest(`GET /api/bugs/${bugId}/testCases called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -45,32 +42,27 @@ router.get('/', async (req, res) => {
       debugTest(`Bug ${bugId} not found`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-    
-    // Get all test cases for this bug
-    const tests = await db.collection('tests').find({ bugId: newId(bugId) }).toArray();
-    debugTest(`Found ${tests.length} test cases for bug ${bugId}`);
-    
-    res.json(tests);
+    // Return the testCases array (or empty array if no test cases)
+    const testCases = bug.testCases || [];
+    debugTest(`Found ${testCases.length} test cases for bug ${bugId}`);
+
+    res.json(testCases);
   } catch (error) {
     debugTest('Error fetching test cases:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /api/bugs/:bugId/tests/:testId - Get specific test case
+// GET /api/bugs/:bugId/tests/:testId - Get specific test case by index
 router.get('/:testId', async (req, res) => {
   try {
     const { bugId, testId } = req.params;
     debugTest(`GET /api/bugs/${bugId}/tests/${testId} called`);
     
-    // Validate ObjectIds
+    // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);
       return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
-    }
-    if (!isValidId(testId)) {
-      debugTest(`Invalid testId ObjectId: ${testId}`);
-      return res.status(404).json({ error: `testId ${testId} is not a valid ObjectId.` });
     }
     
     const db = await connect();
@@ -82,24 +74,24 @@ router.get('/:testId', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    // Get specific test case
-    const test = await db.collection('tests').findOne({ 
-      _id: newId(testId), 
-      bugId: newId(bugId) 
-    });
-    
-    if (!test) {
+    // Get specific test case by index (testId as array index)
+    const testCases = bug.testCases || [];
+    const testIndex = parseInt(testId);
+
+    if (isNaN(testIndex) || testIndex < 0 || testIndex >= testCases.length) {
       debugTest(`Test ${testId} not found for bug ${bugId}`);
       return res.status(404).json({ error: `Test ${testId} not found.` });
     }
-    
-    debugTest(`Test ${testId} found`);
+
+    const test = testCases[testIndex];
+    debugTest(`Test at index ${testId} found`);
     res.json(test);
   } catch (error) {
     debugTest('Error fetching test case:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+     
 
 // POST /api/bugs/:bugId/tests - Create new test case
 router.post('/', async (req, res) => {
