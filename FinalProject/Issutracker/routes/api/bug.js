@@ -3,6 +3,19 @@ import debug from 'debug';
 import { connect, newId, isValidId } from '../../database.js';
 import joi from 'joi';
 
+/*
+MongoDB Indexes required for advanced bug search functionality:
+Run these commands in MongoDB shell:
+
+use IssueTracker
+db.bugs.createIndex({ "$**": "text" })
+db.bugs.createIndex({ "created": -1 })
+db.bugs.createIndex({ "title": 1, "created": -1 })
+db.bugs.createIndex({ "classification": 1, "created": -1 })
+db.bugs.createIndex({ "assignedToUserName": 1, "created": -1 })
+db.bugs.createIndex({ "authorOfBug": 1, "created": -1 })
+*/
+
 const debugBug = debug('app:BugRouter');
 const router = express.Router();
 
@@ -33,6 +46,126 @@ const assignSchema = joi.object({
 
 const closeSchema = joi.object({
   closed: joi.boolean().required()
+});
+
+// GET /api/bugs/list - Return bugs with advanced search and pagination
+router.get('/list', async (req, res) => {
+  try {
+    debugBug('GET /api/bugs/list called');
+    const { 
+      keywords, 
+      classification, 
+      maxAge, 
+      minAge, 
+      closed, 
+      sortBy = 'newest', 
+      pageSize = 5, 
+      pageNumber = 1 
+    } = req.query;
+    
+    const db = await connect();
+    
+    // Build query object
+    const query = {};
+    
+    // Handle keywords search using $text operator
+    if (keywords) {
+      query.$text = { $search: keywords };
+    }
+    
+    // Handle classification filter
+    if (classification) {
+      query.classification = classification;
+    }
+    
+    // Handle age filters (maxAge and minAge in days)
+    if (maxAge || minAge) {
+      query.created = {};
+      
+      if (maxAge) {
+        // Bugs created after (now - maxAge days)
+        const maxAgeDate = new Date();
+        maxAgeDate.setDate(maxAgeDate.getDate() - parseInt(maxAge));
+        query.created.$gte = maxAgeDate;
+      }
+      
+      if (minAge) {
+        // Bugs created before (now - minAge days)
+        const minAgeDate = new Date();
+        minAgeDate.setDate(minAgeDate.getDate() - parseInt(minAge));
+        query.created.$lt = minAgeDate;
+      }
+    }
+    
+    // Handle closed filter
+    if (closed !== undefined) {
+      if (closed === 'true') {
+        query.closed = true;
+      } else if (closed === 'false') {
+        query.closed = { $ne: true }; // Show bugs that are not closed (false, null, or undefined)
+      }
+      // If closed is neither 'true' nor 'false', show all bugs (no filter)
+    }
+    
+    // Build sort object based on sortBy parameter
+    let sortObject = {};
+    switch (sortBy) {
+      case 'newest':
+        sortObject = { created: -1 };
+        break;
+      case 'oldest':
+        sortObject = { created: 1 };
+        break;
+      case 'title':
+        sortObject = { title: 1, created: -1 };
+        break;
+      case 'classification':
+        sortObject = { classification: 1, created: -1 };
+        break;
+      case 'assignedTo':
+        sortObject = { assignedToUserName: 1, created: -1 };
+        break;
+      case 'createdBy':
+        sortObject = { authorOfBug: 1, created: -1 };
+        break;
+      default:
+        sortObject = { created: -1 }; // Default to newest
+    }
+    
+    // Calculate pagination
+    const pageSizeNum = parseInt(pageSize) || 5;
+    const pageNumberNum = parseInt(pageNumber) || 1;
+    const skipCount = (pageNumberNum - 1) * pageSizeNum;
+    
+    // Execute query with sort, skip, and limit
+    const bugs = await db.collection('bugs')
+      .find(query)
+      .sort(sortObject)
+      .skip(skipCount)
+      .limit(pageSizeNum)
+      .toArray();
+    
+    // Get total count for pagination info
+    const totalCount = await db.collection('bugs').countDocuments(query);
+    const totalPages = Math.ceil(totalCount / pageSizeNum);
+    
+    debugBug(`Found ${bugs.length} bugs (page ${pageNumberNum} of ${totalPages})`);
+    
+    res.json({
+      bugs: bugs,
+      pagination: {
+        currentPage: pageNumberNum,
+        pageSize: pageSizeNum,
+        totalBugs: totalCount,
+        totalPages: totalPages,
+        hasNextPage: pageNumberNum < totalPages,
+        hasPreviousPage: pageNumberNum > 1
+      }
+    });
+  } catch (error) {
+    debugBug('Error fetching bugs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // GET /api/bugs - Return all bugs as JSON array

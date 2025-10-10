@@ -4,6 +4,18 @@ import bcrypt from 'bcrypt';
 import {connect, newId, isValidId} from '../../database.js';
 import joi from 'joi';
 
+/*
+MongoDB Indexes required for advanced user search functionality:
+Run these commands in MongoDB shell:
+
+use IssueTracker
+db.users.createIndex({ "$**": "text" })
+db.users.createIndex({ "created": 1 })
+db.users.createIndex({ "givenName": 1, "familyName": 1, "created": 1 })
+db.users.createIndex({ "familyName": 1, "givenName": 1, "created": 1 })
+db.users.createIndex({ "role": 1, "givenName": 1, "familyName": 1, "created": 1 })
+*/
+
 const debugUser = debug('app:UserRouter');
 const router = express.Router();
 
@@ -34,6 +46,105 @@ const updateSchema = joi.object({
 });
 
 
+// GET /api/users/list - Return users with advanced search and pagination
+router.get('/list', async (req, res) => {
+  try {
+    debugUser('GET /api/users/list called');
+    const { keywords, role, maxAge, minAge, sortBy = 'givenName', pageSize = 5, pageNumber = 1 } = req.query;
+    
+    const db = await connect();
+    
+    // Build query object
+    const query = {};
+    
+    // Handle keywords search using $text operator
+    if (keywords) {
+      query.$text = { $search: keywords };
+    }
+    
+    // Handle role filter
+    if (role) {
+      query.role = role;
+    }
+    
+    // Handle age filters (maxAge and minAge in days)
+    if (maxAge || minAge) {
+      query.created = {};
+      
+      if (maxAge) {
+        // Users created after (now - maxAge days)
+        const maxAgeDate = new Date();
+        maxAgeDate.setDate(maxAgeDate.getDate() - parseInt(maxAge));
+        query.created.$gte = maxAgeDate;
+      }
+      
+      if (minAge) {
+        // Users created before (now - minAge days)
+        const minAgeDate = new Date();
+        minAgeDate.setDate(minAgeDate.getDate() - parseInt(minAge));
+        query.created.$lt = minAgeDate;
+      }
+    }
+    
+    // Build sort object based on sortBy parameter
+    let sortObject = {};
+    switch (sortBy) {
+      case 'givenName':
+        sortObject = { givenName: 1, familyName: 1, created: 1 };
+        break;
+      case 'familyName':
+        sortObject = { familyName: 1, givenName: 1, created: 1 };
+        break;
+      case 'role':
+        sortObject = { role: 1, givenName: 1, familyName: 1, created: 1 };
+        break;
+      case 'newest':
+        sortObject = { created: -1 };
+        break;
+      case 'oldest':
+        sortObject = { created: 1 };
+        break;
+      default:
+        sortObject = { givenName: 1, familyName: 1, created: 1 };
+    }
+    
+    // Calculate pagination
+    const pageSizeNum = parseInt(pageSize) || 5;
+    const pageNumberNum = parseInt(pageNumber) || 1;
+    const skipCount = (pageNumberNum - 1) * pageSizeNum;
+    
+    // Execute query with sort, skip, and limit
+    const users = await db.collection('users')
+      .find(query)
+      .sort(sortObject)
+      .skip(skipCount)
+      .limit(pageSizeNum)
+      .toArray();
+    
+    // Get total count for pagination info
+    const totalCount = await db.collection('users').countDocuments(query);
+    const totalPages = Math.ceil(totalCount / pageSizeNum);
+    
+    debugUser(`Found ${users.length} users (page ${pageNumberNum} of ${totalPages})`);
+    
+    res.json({
+      users: users,
+      pagination: {
+        currentPage: pageNumberNum,
+        pageSize: pageSizeNum,
+        totalUsers: totalCount,
+        totalPages: totalPages,
+        hasNextPage: pageNumberNum < totalPages,
+        hasPreviousPage: pageNumberNum > 1
+      }
+    });
+  } catch (error) {
+    debugUser('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // GET /api users = Return all users as JSON array
 router.get('/', async (req, res) => {
   try{
@@ -48,8 +159,6 @@ router.get('/', async (req, res) => {
     
   }
 });
-
-
 
 
 // GET /api/users/:userId - Return a specific user by ID
@@ -84,7 +193,7 @@ router.get('/:userId', async (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     debugUser('POST /api/users/register called');
-    h
+    
     // Validate request body with Joi
     const validateResult = registerSchema.validate(req.body);
     if (validateResult.error) {
@@ -114,7 +223,7 @@ router.post('/register', async (req, res) => {
       givenName: givenName,
       familyName: familyName,
       role: role,
-      createdAt: new Date()
+      created: new Date()
     };
     
     const result = await db.collection('users').insertOne(newUser);
