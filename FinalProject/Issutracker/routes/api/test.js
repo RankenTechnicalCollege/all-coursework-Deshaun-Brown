@@ -13,16 +13,16 @@ router.use(express.urlencoded({ extended: false }));
 const createTestSchema = joi.object({
   testName: joi.string().min(1).required(),
   testDescription: joi.string().min(1).required(),
-  expectedResult: joi.string().min(1).required()
+  passed: joi.boolean().required()
 });
 
 const updateTestSchema = joi.object({
   testDescription: joi.string().min(1).optional(),
-  passed: joi.boolean().optional(),
-  testedBy: joi.string().min(1).optional()
+  passed: joi.boolean().required(),
+  testName: joi.string().min(1).optional()
 });
 
-// GET /api/bugs/:bugId/tests - Get all test cases for a bug
+// GET /api/bugs/:bugId/testCases - Get all test cases for a bug (with optional filtering)
 router.get('/', async (req, res) => {
   try {
     const { bugId } = req.params;
@@ -93,11 +93,11 @@ router.get('/:testId', async (req, res) => {
 });
      
 
-// POST /api/bugs/:bugId/tests - Create new test case
+// POST /api/bugs/:bugId/testCases - Create new test case
 router.post('/', async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`POST /api/bugs/${bugId}/tests called`);
+    debugTest(`POST /api/bugs/${bugId}/testCases called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -112,7 +112,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: validateResult.error });
     }
     
-    const { testName, testDescription, expectedResult } = validateResult.value;
+    const { testName, testDescription, passed } = validateResult.value;
     
     const db = await connect();
     
@@ -123,25 +123,26 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    // Create new test case
+    // Create new test case object
     const newTest = {
-      bugId: newId(bugId),
       testName: testName,
       testDescription: testDescription,
-      expectedResult: expectedResult,
-      actualResult: null,
-      passed: null,
-      testedBy: null,
-      createdAt: new Date(),
-      lastUpdated: new Date()
+      passed: passed,
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString()
     };
     
-    const result = await db.collection('tests').insertOne(newTest);
-    debugTest(`New test case created with ID: ${result.insertedId}`);
+    // Add test case to the bug's testCases array
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $push: { testCases: newTest } }
+    );
+    
+    debugTest(`New test case added to bug ${bugId}`);
     
     res.status(200).json({ 
       message: "Test case created successfully!", 
-      testId: result.insertedId 
+      testCase: newTest
     });
   } catch (error) {
     debugTest('Error creating test case:', error);
@@ -149,20 +150,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/bugs/:bugId/tests/:testId - Update test case
+// PATCH /api/bugs/:bugId/testCases/:testId - Update test case by index
 router.patch('/:testId', async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`PATCH /api/bugs/${bugId}/tests/${testId} called`);
+    debugTest(`PATCH /api/bugs/${bugId}/testCases/${testId} called`);
     
-    // Validate ObjectIds
+    // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);
       return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
-    }
-    if (!isValidId(testId)) {
-      debugTest(`Invalid testId ObjectId: ${testId}`);
-      return res.status(404).json({ error: `testId ${testId} is not a valid ObjectId.` });
     }
     
     // Validate request body with Joi
@@ -181,37 +178,35 @@ router.patch('/:testId', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    // Check if test exists
-    const test = await db.collection('tests').findOne({ 
-      _id: newId(testId), 
-      bugId: newId(bugId) 
-    });
-    if (!test) {
-      debugTest(`Test ${testId} not found for bug ${bugId}`);
-      return res.status(404).json({ error: `Test ${testId} not found.` });
+    // Validate testId as array index
+    const testIndex = parseInt(testId);
+    const testCases = bug.testCases || [];
+    
+    if (isNaN(testIndex) || testIndex < 0 || testIndex >= testCases.length) {
+      debugTest(`Test at index ${testId} not found for bug ${bugId}`);
+      return res.status(404).json({ error: `Test at index ${testId} not found.` });
     }
     
-    const { testName, testDescription, expectedResult, actualResult, passed, testedBy } = validateResult.value;
+    const { testName, testDescription, passed } = validateResult.value;
     const updateFields = {};
     
-    if (testName) updateFields.testName = testName;
-    if (testDescription) updateFields.testDescription = testDescription;
-    if (expectedResult) updateFields.expectedResult = expectedResult;
-    if (actualResult) updateFields.actualResult = actualResult;
-    if (passed !== undefined) updateFields.passed = passed;
-    if (testedBy) updateFields.testedBy = testedBy;
+    // Build update object for the specific array element
+    if (testName) updateFields[`testCases.${testIndex}.testName`] = testName;
+    if (testDescription) updateFields[`testCases.${testIndex}.testDescription`] = testDescription;
+    if (passed !== undefined) updateFields[`testCases.${testIndex}.passed`] = passed;
     
-    updateFields.lastUpdated = new Date();
+    updateFields[`testCases.${testIndex}.lastUpdated`] = new Date().toISOString();
     
-    await db.collection('tests').updateOne(
-      { _id: newId(testId), bugId: newId(bugId) },
+    // Update the specific test case in the array
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
       { $set: updateFields }
     );
     
-    debugTest(`Test ${testId} updated`);
+    debugTest(`Test at index ${testId} updated`);
     res.status(200).json({ 
-      message: `Test ${testId} updated!`, 
-      testId: testId 
+      message: `Test at index ${testId} updated!`, 
+      testIndex: testIndex 
     });
   } catch (error) {
     debugTest('Error updating test case:', error);
@@ -219,20 +214,16 @@ router.patch('/:testId', async (req, res) => {
   }
 });
 
-// DELETE /api/bugs/:bugId/tests/:testId - Delete test case
+// DELETE /api/bugs/:bugId/testCases/:testId - Delete test case by index
 router.delete('/:testId', async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`DELETE /api/bugs/${bugId}/tests/${testId} called`);
+    debugTest(`DELETE /api/bugs/${bugId}/testCases/${testId} called`);
     
-    // Validate ObjectIds
+    // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);
       return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
-    }
-    if (!isValidId(testId)) {
-      debugTest(`Invalid testId ObjectId: ${testId}`);
-      return res.status(404).json({ error: `testId ${testId} is not a valid ObjectId.` });
     }
     
     const db = await connect();
@@ -243,27 +234,36 @@ router.delete('/:testId', async (req, res) => {
       debugTest(`Bug ${bugId} not found`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-    
-    // Check if test exists before deleting
-    const test = await db.collection('tests').findOne({ 
-      _id: newId(testId), 
-      bugId: newId(bugId) 
-    });
-    if (!test) {
-      debugTest(`Test ${testId} not found for bug ${bugId}`);
-      return res.status(404).json({ error: `Test ${testId} not found.` });
+  
+    // Validate testId as array index
+    const testIndex = parseInt(testId);
+    const testCases = bug.testCases || [];
+
+    if (isNaN(testIndex) || testIndex < 0 || testIndex >= testCases.length) {
+      debugTest(`Test at index ${testId} not found for bug ${bugId}`);
+      return res.status(404).json({ error: `Test at index ${testId} not found.` });
     }
+  
+    // Get the test case that will be deleted (for response)
+    const deletedTestCase = testCases[testIndex];
     
-    // Delete the test case
-    await db.collection('tests').deleteOne({ 
-      _id: newId(testId), 
-      bugId: newId(bugId) 
-    });
+    // Remove the test case from the array using $unset and $pull
+    // First, unset the array element at the specific index
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $unset: { [`testCases.${testIndex}`]: 1 } }
+    );
     
-    debugTest(`Test ${testId} deleted`);
+    // Then pull the null values to compact the array
+    await db.collection('bugs').updateOne(
+      { _id: newId(bugId) },
+      { $pull: { testCases: null } }
+    );
+    
+    debugTest(`Test at index ${testId} deleted from bug ${bugId}`);
     res.status(200).json({ 
-      message: `Test ${testId} deleted!`, 
-      testId: testId 
+      message: `Test at index ${testId} deleted!`, 
+      deletedTestCase: deletedTestCase
     });
   } catch (error) {
     debugTest('Error deleting test case:', error);
