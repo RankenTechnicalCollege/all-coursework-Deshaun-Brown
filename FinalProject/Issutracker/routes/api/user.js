@@ -46,10 +46,10 @@ const updateSchema = joi.object({
 });
 
 
-// GET /api/users/list - Return users with advanced search and pagination
-router.get('/list', async (req, res) => {
+// GET /api/users/- Return users with advanced search and pagination
+router.get('/', async (req, res) => {
   try {
-    debugUser('GET /api/users/list called');
+    debugUser('GET /api/users/ called');
     const { keywords, role, maxAge, minAge, sortBy = 'givenName', pageSize = 5, pageNumber = 1 } = req.query;
     
     const db = await connect();

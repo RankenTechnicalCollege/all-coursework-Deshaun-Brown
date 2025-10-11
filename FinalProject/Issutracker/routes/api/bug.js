@@ -433,14 +433,12 @@ router.patch('/:bugId/close', async (req, res) => {
     
     const updateFields = {
       closed: closed,
-      lastUpdated: new Date()
+      closedOnDate: new Date()
     };
+    debugBug(`The closed value is ${closed}`);
+
     
-    if (closed) {
-      updateFields.closedOn = new Date();
-    } else {
-      updateFields.closedOn = null;
-    }
+
     
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },

@@ -1,6 +1,5 @@
 import express from 'express';
-import dotenv from 'dotenv';
-dotenv.config();
+
 import debug from 'debug';
 import { UserRouter } from './routes/api/user.js';
 import { BugRouter } from './routes/api/bug.js';
@@ -10,8 +9,6 @@ import { TestRouter } from './routes/api/test.js';
 const debugServer = debug('app:Server');
 
 const app = express();
-
-dotenv.config();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
