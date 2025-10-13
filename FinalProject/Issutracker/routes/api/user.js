@@ -49,97 +49,77 @@ const updateSchema = joi.object({
 // GET /api/users/- Return users with advanced search and pagination
 router.get('/', async (req, res) => {
   try {
-    debugUser('GET /api/users/ called');
-    const { keywords, role, maxAge, minAge, sortBy = 'givenName', pageSize = 5, pageNumber = 1 } = req.query;
-    
     const db = await connect();
-    
-    // Build query object
+    const {
+      keywords,
+      role,
+      maxAge,
+      minAge,
+      sortBy = 'givenName',
+      pageSize = 5,
+      pageNumber = 1
+    } = req.query;
+
     const query = {};
-    
-    // Handle keywords search using $text operator
+
+    // Keyword search
     if (keywords) {
       query.$text = { $search: keywords };
     }
-    
-    // Handle role filter
+
+    // Role filter
     if (role) {
       query.role = role;
     }
-    
-    // Handle age filters (maxAge and minAge in days)
-    if (maxAge || minAge) {
-      query.created = {};
-      
-      if (maxAge) {
-        // Users created after (now - maxAge days)
-        const maxAgeDate = new Date();
-        maxAgeDate.setDate(maxAgeDate.getDate() - parseInt(maxAge));
-        query.created.$gte = maxAgeDate;
-      }
-      
-      if (minAge) {
-        // Users created before (now - minAge days)
-        const minAgeDate = new Date();
-        minAgeDate.setDate(minAgeDate.getDate() - parseInt(minAge));
-        query.created.$lt = minAgeDate;
-      }
+
+    // Age filters (based on created date)
+    const now = new Date();
+    if (maxAge) {
+      const maxDate = new Date(now.getTime() - parseInt(maxAge) * 24 * 60 * 60 * 1000);
+      query.created = query.created || {};
+      query.created.$gte = maxDate;
     }
-    
-    // Build sort object based on sortBy parameter
-    let sortObject = {};
+    if (minAge) {
+      const minDate = new Date(now.getTime() - parseInt(minAge) * 24 * 60 * 60 * 1000);
+      query.created = query.created || {};
+      query.created.$lt = minDate;
+    }
+
+    // Sorting logic
+    let sort = {};
     switch (sortBy) {
-      case 'givenName':
-        sortObject = { givenName: 1, familyName: 1, created: 1 };
-        break;
       case 'familyName':
-        sortObject = { familyName: 1, givenName: 1, created: 1 };
+        sort = { familyName: 1, givenName: 1, created: 1 };
         break;
       case 'role':
-        sortObject = { role: 1, givenName: 1, familyName: 1, created: 1 };
+        sort = { role: 1, givenName: 1, familyName: 1, created: 1 };
         break;
       case 'newest':
-        sortObject = { created: -1 };
+        sort = { created: -1 };
         break;
       case 'oldest':
-        sortObject = { created: 1 };
+        sort = { created: 1 };
         break;
+      case 'givenName':
       default:
-        sortObject = { givenName: 1, familyName: 1, created: 1 };
+        sort = { givenName: 1, familyName: 1, created: 1 };
+        break;
     }
-    
-    // Calculate pagination
-    const pageSizeNum = parseInt(pageSize) || 5;
-    const pageNumberNum = parseInt(pageNumber) || 1;
-    const skipCount = (pageNumberNum - 1) * pageSizeNum;
-    
-    // Execute query with sort, skip, and limit
+
+    // Pagination
+    const limit = parseInt(pageSize) || 5;
+    const skip = (parseInt(pageNumber) - 1) * limit;
+
     const users = await db.collection('users')
       .find(query)
-      .sort(sortObject)
-      .skip(skipCount)
-      .limit(pageSizeNum)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
       .toArray();
-    
-    // Get total count for pagination info
-    const totalCount = await db.collection('users').countDocuments(query);
-    const totalPages = Math.ceil(totalCount / pageSizeNum);
-    
-    debugUser(`Found ${users.length} users (page ${pageNumberNum} of ${totalPages})`);
-    
-    res.json({
-      users: users,
-      pagination: {
-        currentPage: pageNumberNum,
-        pageSize: pageSizeNum,
-        totalUsers: totalCount,
-        totalPages: totalPages,
-        hasNextPage: pageNumberNum < totalPages,
-        hasPreviousPage: pageNumberNum > 1
-      }
-    });
+
+    res.json(users);
   } catch (error) {
-    debugUser('Error fetching users:', error);
+    console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

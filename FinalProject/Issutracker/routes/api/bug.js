@@ -438,8 +438,6 @@ router.patch('/:bugId/close', async (req, res) => {
     debugBug(`The closed value is ${closed}`);
 
     
-
-    
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
       { $set: updateFields }
