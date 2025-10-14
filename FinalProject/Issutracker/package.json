@@ -1,5 +1,5 @@
 {
-  "name": "issutracker",
+  "name": "IssueTracker",
   "version": "1.0.0",
   "description": "Issue Tracker for tracking software bugs during the software development life cycle.",
   "main": "index.js",
