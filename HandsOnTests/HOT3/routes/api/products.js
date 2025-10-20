@@ -1,13 +1,9 @@
 import express from 'express';
 import Joi from 'joi';
 import debug from 'debug';
-import * as dotenv from 'dotenv';
 import { getProductCollection, ObjectId } from '../../database.js';
 
-dotenv.config();
-
 const debugProduct = debug('app:ProductRouter');
-
 
 const router = express.Router();
 

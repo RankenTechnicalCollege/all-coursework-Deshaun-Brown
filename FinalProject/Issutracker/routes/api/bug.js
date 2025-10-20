@@ -51,7 +51,7 @@ const closeSchema = joi.object({
 // GET /api/bugs/list - Return bugs with advanced search and pagination
 router.get('/list', async (req, res) => {
   try {
-    debugBug('GET /api/bugs/list called');
+    debugBug('GET /api/bugs called');
     const { 
       keywords, 
       classification, 

@@ -1,28 +1,24 @@
 import { MongoClient, ObjectId } from 'mongodb';
+import * as dotenv from 'dotenv';
 import debug from 'debug';
 
-// dotenv is loaded in server.js (nodemon is started with --env-file .env),
-// so avoid calling dotenv.config() here to prevent duplicate initialization
-// and the 'Identifier "dotenv" has already been declared' error.
+dotenv.config(); // Load environment variables
+
 const debugDb = debug('app:Database');
+
+// ✅ Define constants from .env
+const dbUrl = process.env.DB_URL;
+const dbName = process.env.DB_NAME || 'Ecommerce';
 
 let _client = null;
 
-// Connect to MongoDB
 async function connect() {
   if (!_client) {
-    const dbUrl = process.env.DB_URL || process.env.MONGODB_URI || process.env.DATABASE_URL;
-    const dbName = process.env.DB_NAME || process.env.MONGODB_DB || 'Ecommerce';
-
     if (!dbUrl) throw new Error('Database URL not configured in environment');
-
     _client = new MongoClient(dbUrl);
     await _client.connect();
     debugDb(`Connected to MongoDB db=${dbName}`);
-    return _client.db(dbName);
   }
-
-  const dbName = process.env.DB_NAME || process.env.MONGODB_DB || 'Ecommerce';
   return _client.db(dbName);
 }
 
@@ -56,6 +52,7 @@ async function getProductCollection() {
   const db = await connect();
   return db.collection('products');
 }
+
 
 // Export everything
 export {

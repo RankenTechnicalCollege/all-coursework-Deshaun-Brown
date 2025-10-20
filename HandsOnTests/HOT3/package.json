@@ -13,9 +13,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "dev",
-    "start": "node server.js",
-    "dev": "nodemon --env-file .env server.js"
+  "test": "dev",
+  "start": "node server.js",
+  "dev": "nodemon server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
