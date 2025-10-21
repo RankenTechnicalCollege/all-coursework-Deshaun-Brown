@@ -1,9 +1,7 @@
-import * as dotenv from 'dotenv';
+
 import { MongoClient, ObjectId } from 'mongodb';
 import debug from 'debug';
 
-
-dotenv.config();
 
 const debugDb = debug('app:Database');
 
@@ -21,7 +19,7 @@ let _db = null;
 
 async function connect() {
     if (!_db) {
-        const dbUrl = process.env.DB_URL;
+        const dbUrl = process.env.DB_URL || 'mongodb+srv://dezmonmint_db_user:Soultruth1!@cluster0.wxksszc.mongodb.net/';
         const dbName = process.env.DB_NAME || 'IssueTracker';
         const client = await MongoClient.connect(dbUrl);
         _db = client.db(dbName);
@@ -31,13 +29,13 @@ async function connect() {
 }
 
 
-async function ping(){
+/*async function ping(){
     const db = await connect();
     await db.command({ ping: 1 });
     debugDb('Ping.');
-}
+} */
 
 
-export { newId, connect, ping, isValidId};
+export { newId, connect, isValidId};
 
 //ping();
