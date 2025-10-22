@@ -7,6 +7,11 @@ const debugProduct = debug('app:ProductRouter');
 
 const router = express.Router();
 
+// Utility to escape user input for use in a RegExp
+function escapeRegExp(str) {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const productSchema = Joi.object({
 	name: Joi.string().required(),
 	description: Joi.string().allow('').optional(),
@@ -37,16 +42,31 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/products/name/:productName - find product by name (case-insensitive exact match)
-router.get('/api/products/name/:productName', (req, res) => {
-  const rawName = req.params.productName;
-  const cleanName = decodeURIComponent(rawName).trim(); // Removes leading/trailing whitespace and newlines
+// Note: This router is mounted at `/api/products`, so the route path here should NOT repeat that prefix.
+router.get('/name/:productName', async (req, res) => {
+	try {
+		const rawName = req.params.productName ?? '';
+		const cleanName = rawName.trim(); // remove leading/trailing whitespace/newlines
 
-  const product = products.find(p => p.name === cleanName);
-  if (!product) {
-    return res.status(404).json({ error: 'Product not found' });
-  }
+		if (!cleanName) {
+			return res.status(400).json({ message: 'Product name is required' });
+		}
 
-  res.json(product);
+		const col = await getProductCollection();
+		// Case-insensitive exact match on name
+		const regex = new RegExp(`^${escapeRegExp(cleanName)}$`, 'i');
+		const product = await col.findOne({ name: { $regex: regex } });
+
+		if (!product) {
+			return res.status(404).json({ message: 'Product not found' });
+		}
+
+		debugProduct(`Found product by name: ${cleanName}`);
+		return res.status(200).json(product);
+	} catch (err) {
+		debugProduct('Failed to get product by name:', err);
+		return res.status(500).json({ message: 'Failed to get product by name', error: err.message });
+	}
 });
 
 // GET /api/products/:id - find by id
