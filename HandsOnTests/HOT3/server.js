@@ -1,4 +1,3 @@
-
 import express from 'express';
 import productRouter from './routes/api/products.js';
 import { ping } from './database.js';
@@ -18,6 +17,7 @@ console.log(
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware so incoming requests appear in the terminal
 app.use((req, res, next) => {
@@ -54,6 +54,11 @@ app.get('/api/ping', async (req, res) => {
 
 app.use('/api/products', productRouter);
 
-// health
-app.get('/', (req, res) => res.json({ message: 'HOT3 API running' }));
+
+app.use(express.static('Ecommerce/dist'));
+
+// Simple root route (optional; Issuetracker sends a greeting)
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
 
