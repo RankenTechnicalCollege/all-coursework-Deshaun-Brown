@@ -37,19 +37,16 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/products/name/:productName - find product by name (case-insensitive exact match)
-router.get('/name/:productName', async (req, res) => {
-	try {
-		debugProduct('GET /api/products/name called');
-		const col = await getProductCollection();
-		const name = req.params.productName;
-		const product = await col.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
-		if (!product) return res.status(404).json({ message: 'Product not found' });
-		debugProduct(`Product found by name: ${product._id}`);
-		return res.status(200).json(product);
-	} catch (err) {
-		debugProduct('Failed to lookup product by name:', err);
-		return res.status(500).json({ message: 'Failed to lookup product by name', error: err.message });
-	}
+router.get('/api/products/name/:productName', (req, res) => {
+  const rawName = req.params.productName;
+  const cleanName = decodeURIComponent(rawName).trim(); // Removes leading/trailing whitespace and newlines
+
+  const product = products.find(p => p.name === cleanName);
+  if (!product) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+
+  res.json(product);
 });
 
 // GET /api/products/:id - find by id
