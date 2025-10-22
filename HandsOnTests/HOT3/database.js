@@ -1,8 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import * as dotenv from 'dotenv';
 import debug from 'debug';
 
-dotenv.config(); // Load environment variables
 
 const debugDb = debug('app:Database');
 

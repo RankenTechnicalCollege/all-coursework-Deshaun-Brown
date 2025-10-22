@@ -1,11 +1,11 @@
-import * as dotenv from 'dotenv';
+
 import express from 'express';
 import productRouter from './routes/api/products.js';
 import { ping } from './database.js';
 import debug from 'debug';
 
 
-dotenv.config({ path: '.env.local' });
+
 
 // Helpful startup log so we can confirm the file is being executed
 console.log(
