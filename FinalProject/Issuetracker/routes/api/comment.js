@@ -119,10 +119,11 @@ router.post('/', async (req, res) => {
     
     // Create new comment object
     const newComment = {
-      comment: comment,
-      operationAuthor: operationAuthor, // Keep as string - user identifier
+      comment,
+      operationAuthor,
       dateTime: new Date().toISOString(),
-      text: text || ""
+      text: text || "",
+      createdBy: req.user?.email || 'unknown'
     };
     
     // Add comment to the bug's comments array

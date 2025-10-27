@@ -1,7 +1,8 @@
 import express from 'express';
 import debug from 'debug';
 import bcrypt from 'bcrypt';
-import {connect, newId, isValidId} from '../../database.js';
+import {connect, newId, isValidId, saveAuditLog} from '../../database.js';
+import { isAuthenticated } from '../../middleware/isAuthenticated.js';
 import joi from 'joi';
 
 /*
@@ -21,6 +22,74 @@ const router = express.Router();
 
 router.use(express.json());
 router.use(express.urlencoded({extended:false}));
+// PATCH /api/users/me - Update own profile; hash password if changed; audit and rotate session
+router.patch('/me', isAuthenticated, async (req, res) => {
+  try {
+    const db = await connect();
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const validateResult = updateSchema.validate(req.body);
+    if (validateResult.error) {
+      debugUser(`Validation error: ${validateResult.error}`);
+      return res.status(400).json({ error: validateResult.error });
+    }
+
+    const { password, fullName, givenName, familyName, role } = validateResult.value;
+    const updateFields = {};
+
+    if (password) {
+      const saltRounds = 10;
+      updateFields.password = await bcrypt.hash(password, saltRounds);
+    }
+    if (fullName) updateFields.fullName = fullName;
+    if (givenName) updateFields.givenName = givenName;
+    if (familyName) updateFields.familyName = familyName;
+    if (role) updateFields.role = role;
+
+    updateFields.lastUpdatedOn = new Date();
+    updateFields.lastUpdatedBy = req.user?.email || 'unknown';
+
+    await db.collection('users').updateOne(
+      { _id: newId(userId) },
+      { $set: updateFields }
+    );
+
+    try {
+      await saveAuditLog({
+        col: 'user',
+        entity: 'user',
+        op: 'update',
+        target: { userId },
+        update: Object.keys(updateFields),
+        performedBy: req.user?.email || 'unknown',
+      });
+    } catch {}
+
+    // Note: Re-issuing token is handled by Better Auth endpoints. Here we simply respond success.
+    return res.status(200).json({ message: 'Profile updated' });
+  } catch (error) {
+    debugUser('Error updating own profile:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// GET /api/users/me - Return current user's profile (requires auth)
+router.get('/me', isAuthenticated, async (req, res) => {
+  try {
+    const db = await connect();
+    // Better Auth user has id as string
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const user = await db.collection('users').findOne({ _id: newId(userId) });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.json(user);
+  } catch (err) {
+    debugUser('Error in /me:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Define Joi schemas
 const registerSchema = joi.object({
@@ -308,6 +377,16 @@ router.patch('/:userId', async (req, res) => {
     );
     
     debugUser(`User ${userId} updated`);
+    // Audit log
+    try {
+      await saveAuditLog({
+        entity: 'user',
+        operation: 'update',
+        userId,
+        performedBy: req.user?.email || 'unknown',
+        changes: Object.keys(updateFields),
+      });
+    } catch {}
     res.status(200).json({ message: `User ${userId} updated!`, userId: userId });
   } catch (error) {
     debugUser('Error updating user:', error);
@@ -337,6 +416,15 @@ router.delete('/:userId', async (req, res) => {
     
     await db.collection('users').deleteOne({ _id: newId(userId) });
     debugUser(`User ${userId} deleted`);
+    // Audit log
+    try {
+      await saveAuditLog({
+        entity: 'user',
+        operation: 'delete',
+        userId,
+        performedBy: req.user?.email || 'unknown',
+      });
+    } catch {}
     res.status(200).json({ message: `User ${userId} deleted!`, userId: userId });
   } catch (error) {
     debugUser('Error deleting user:', error);

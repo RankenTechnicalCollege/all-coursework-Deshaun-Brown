@@ -1,6 +1,6 @@
 import express from 'express';
 import debug from 'debug';
-import { connect, newId, isValidId } from '../../database.js';
+import { connect, newId, isValidId, saveAuditLog } from '../../database.js';
 import joi from 'joi';
 
 const debugTest = debug('app:TestRouter');
@@ -125,11 +125,13 @@ router.post('/', async (req, res) => {
     
     // Create new test case object
     const newTest = {
-      testName: testName,
-      testDescription: testDescription,
-      passed: passed,
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString()
+      testName,
+      testDescription,
+      passed,
+      createdOn: new Date().toISOString(),
+      createdBy: req.user?.email || 'unknown',
+      lastUpdatedOn: new Date().toISOString(),
+      lastUpdatedBy: req.user?.email || 'unknown'
     };
     
     // Add test case to the bug's testCases array
@@ -140,6 +142,17 @@ router.post('/', async (req, res) => {
     
     debugTest(`New test case added to bug ${bugId}`);
     
+    try {
+      await saveAuditLog({
+        col: 'test',
+        entity: 'test',
+        op: 'insert',
+        target: { bugId },
+        update: newTest,
+        performedBy: req.user?.email || 'unknown'
+      });
+    } catch {}
+
     res.status(200).json({ 
       message: "Test case created successfully!", 
       testCase: newTest
@@ -195,7 +208,8 @@ router.patch('/:testId', async (req, res) => {
     if (testDescription) updateFields[`testCases.${testIndex}.testDescription`] = testDescription;
     if (passed !== undefined) updateFields[`testCases.${testIndex}.passed`] = passed;
     
-    updateFields[`testCases.${testIndex}.lastUpdated`] = new Date().toISOString();
+  updateFields[`testCases.${testIndex}.lastUpdatedOn`] = new Date().toISOString();
+  updateFields[`testCases.${testIndex}.lastUpdatedBy`] = req.user?.email || 'unknown';
     
     // Update the specific test case in the array
     await db.collection('bugs').updateOne(
@@ -204,6 +218,17 @@ router.patch('/:testId', async (req, res) => {
     );
     
     debugTest(`Test at index ${testId} updated`);
+    try {
+      await saveAuditLog({
+        col: 'test',
+        entity: 'test',
+        op: 'update',
+        target: { bugId, testIndex },
+        update: Object.keys(validateResult.value),
+        performedBy: req.user?.email || 'unknown'
+      });
+    } catch {}
+
     res.status(200).json({ 
       message: `Test at index ${testId} updated!`, 
       testIndex: testIndex 
@@ -261,6 +286,16 @@ router.delete('/:testId', async (req, res) => {
     );
     
     debugTest(`Test at index ${testId} deleted from bug ${bugId}`);
+    try {
+      await saveAuditLog({
+        col: 'test',
+        entity: 'test',
+        op: 'delete',
+        target: { bugId, testIndex },
+        performedBy: req.user?.email || 'unknown'
+      });
+    } catch {}
+
     res.status(200).json({ 
       message: `Test at index ${testId} deleted!`, 
       deletedTestCase: deletedTestCase

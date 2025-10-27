@@ -1,6 +1,6 @@
 import express from 'express';
 import debug from 'debug';
-import { connect, newId, isValidId } from '../../database.js';
+import { connect, newId, isValidId, saveAuditLog } from '../../database.js';
 import joi from 'joi';
 
 /*
@@ -230,15 +230,28 @@ router.post('/', async (req, res) => {
     
     // Create new bug
     const newBug = {
-      title: title,
-      description: description,
-      stepsToReproduce: stepsToReproduce,
-      createdAt: new Date(),
+      title,
+      description,
+      stepsToReproduce,
+      createdOn: new Date(),
+      createdBy: req.user?.email || 'unknown',
+      classification: 'unclassified',
       closed: false
     };
     
     const result = await db.collection('bugs').insertOne(newBug);
     debugBug(`New bug created with ID: ${result.insertedId}`);
+    // Audit log: insert
+    try {
+      await saveAuditLog({
+        col: 'bug',
+        entity: 'bug',
+        op: 'insert',
+        target: { bugId: String(result.insertedId) },
+        update: newBug,
+        performedBy: req.user?.email || 'unknown',
+      });
+    } catch {}
     res.status(200).json({ message: "New bug reported!", bugId: result.insertedId });
   } catch (error) {
     debugBug('Error creating bug:', error);
@@ -287,7 +300,8 @@ router.patch('/:bugId', async (req, res) => {
       updateFields.stepsToReproduce = stepsToReproduce;
     }
     
-    updateFields.lastUpdated = new Date();
+  updateFields.lastUpdatedOn = new Date();
+  updateFields.lastUpdatedBy = req.user?.email || 'unknown';
     
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
@@ -295,6 +309,15 @@ router.patch('/:bugId', async (req, res) => {
     );
     
     debugBug(`Bug ${bugId} updated`);
+    try {
+      await saveAuditLog({
+        entity: 'bug',
+        operation: 'update',
+        bugId,
+        performedBy: req.user?.email || 'unknown',
+        changes: Object.keys(updateFields),
+      });
+    } catch {}
     res.status(200).json({ message: `Bug ${bugId} updated!`, bugId: bugId });
   } catch (error) {
     debugBug('Error updating bug:', error);
@@ -333,9 +356,11 @@ router.patch('/:bugId/classification', async (req, res) => {
     }
     
     const updateFields = {
-      classification: classification,
+      classification,
       classifiedOn: new Date(),
-      lastUpdated: new Date()
+      classifiedBy: req.user?.email || 'unknown',
+      lastUpdatedOn: new Date(),
+      lastUpdatedBy: req.user?.email || 'unknown',
     };
     
     await db.collection('bugs').updateOne(
@@ -344,6 +369,15 @@ router.patch('/:bugId/classification', async (req, res) => {
     );
     
     debugBug(`Bug ${bugId} classified`);
+    try {
+      await saveAuditLog({
+        entity: 'bug',
+        operation: 'classify',
+        bugId,
+        performedBy: req.user?.email || 'unknown',
+        changes: ['classification'],
+      });
+    } catch {}
     res.status(200).json({ message: `Bug ${bugId} classified!`, bugId: bugId });
   } catch (error) {
     debugBug('Error classifying bug:', error);
@@ -382,10 +416,12 @@ router.patch('/:bugId/assign', async (req, res) => {
     }
     
     const updateFields = {
-      assignedToUserId: assignedToUserId,
-      assignedToUserName: assignedToUserName,
+      assignedToUserId,
+      assignedToUserName,
       assignedOn: new Date(),
-      lastUpdated: new Date()
+      assignedBy: req.user?.email || 'unknown',
+      lastUpdatedOn: new Date(),
+      lastUpdatedBy: req.user?.email || 'unknown',
     };
     
     await db.collection('bugs').updateOne(
@@ -394,6 +430,15 @@ router.patch('/:bugId/assign', async (req, res) => {
     );
     
     debugBug(`Bug ${bugId} assigned`);
+    try {
+      await saveAuditLog({
+        entity: 'bug',
+        operation: 'assign',
+        bugId,
+        performedBy: req.user?.email || 'unknown',
+        changes: ['assignedToUserId','assignedToUserName'],
+      });
+    } catch {}
     res.status(200).json({ message: `Bug ${bugId} assigned!`, bugId: bugId });
   } catch (error) {
     debugBug('Error assigning bug:', error);
@@ -421,7 +466,7 @@ router.patch('/:bugId/close', async (req, res) => {
       return res.status(400).json({ error: validateResult.error });
     }
     
-    const { closed } = validateResult.value;
+  const { closed } = validateResult.value;
     
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
@@ -432,8 +477,11 @@ router.patch('/:bugId/close', async (req, res) => {
     }
     
     const updateFields = {
-      closed: closed,
-      closedOnDate: new Date()
+      closed,
+      closedOn: closed ? new Date() : null,
+      closedBy: closed ? (req.user?.email || 'unknown') : null,
+      lastUpdatedOn: new Date(),
+      lastUpdatedBy: req.user?.email || 'unknown',
     };
     debugBug(`The closed value is ${closed}`);
 
@@ -444,6 +492,15 @@ router.patch('/:bugId/close', async (req, res) => {
     );
     
     debugBug(`Bug ${bugId} closed status updated`);
+    try {
+      await saveAuditLog({
+        entity: 'bug',
+        operation: 'close',
+        bugId,
+        performedBy: req.user?.email || 'unknown',
+        changes: ['closed'],
+      });
+    } catch {}
     res.status(200).json({ message: `Bug ${bugId} closed!`, bugId: bugId });
   } catch (error) {
     debugBug('Error closing bug:', error);

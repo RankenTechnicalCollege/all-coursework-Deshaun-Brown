@@ -16,16 +16,42 @@ const isValidId = (str) => {
 };
 
 let _db = null;
+let _client = null;
 
 async function connect() {
-    if (!_db) {
-        const dbUrl = process.env.DB_URL || 'mongodb+srv://dezmonmint_db_user:Soultruth1!@cluster0.wxksszc.mongodb.net/';
-        const dbName = process.env.DB_NAME || 'IssueTracker';
-        const client = await MongoClient.connect(dbUrl);
-        _db = client.db(dbName);
-        debugDb('Connected to MongoDB');
-    }
-    return _db;
+  if (!_db) {
+    const dbUrl = process.env.DB_URL || 'mongodb+srv://dezmonmint_db_user:Soultruth1!@cluster0.wxksszc.mongodb.net/';
+    const dbName = process.env.DB_NAME || 'IssueTracker';
+
+    if (!dbUrl) throw new Error('DB_URL is not set');
+    if (!dbName) throw new Error('DB_NAME is not set');
+
+    const client = new MongoClient(dbUrl);
+    await client.connect();
+    _client = client;
+    _db = client.db(dbName);
+    debugDb('Connected to MongoDB');
+  }
+  return _db;
+}
+
+async function getDatabase() {
+  return await connect();
+}
+
+async function getClient() {
+  if (!_client) await connect();
+  return _client;
+}
+
+async function saveAuditLog(entry) {
+  const db = await connect();
+  const doc = {
+    ...entry,
+    timestamp: entry?.timestamp ? new Date(entry.timestamp) : new Date(),
+  };
+  await db.collection('AuditLog').insertOne(doc);
+  return doc;
 }
 
 
@@ -36,6 +62,6 @@ async function connect() {
 } */
 
 
-export { newId, connect, isValidId};
+export { newId, connect, isValidId, getClient, getDatabase, saveAuditLog };
 
 //ping();

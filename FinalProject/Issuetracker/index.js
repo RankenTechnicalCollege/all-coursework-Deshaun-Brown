@@ -1,6 +1,9 @@
 import express from 'express';
-
 import debug from 'debug';
+import cors from 'cors';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './auth.js';
+import { isAuthenticated } from './middleware/isAuthenticated.js';
 import { UserRouter } from './routes/api/user.js';
 import { BugRouter } from './routes/api/bug.js';
 import { CommentRouter } from './routes/api/comment.js';
@@ -11,14 +14,42 @@ const debugServer = debug('app:Server');
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
+app.use(express.urlencoded({ extended: true }));
+
+// CORS for frontend and Postman testing
+app.use(cors({
+    origin: [
+        `http://localhost:${process.env.PORT || 8080}`,
+        'http://localhost:3000',
+        'http://localhost:5173',
+    ],
+    credentials: true,
+}));
 
 app.use(express.static('frontend/dist'));
 
-app.use('/api/users', UserRouter);
-app.use('/api/bugs', BugRouter);
-app.use('/api/bugs/:bugId/comments', CommentRouter);
-app.use('/api/bugs/:bugId/testCases', TestRouter);
+// Help Postman by defaulting Origin in dev (Better Auth requires Origin)
+app.use('/api/auth', (req, _res, next) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (!isProd) {
+        const origin = req.headers.origin;
+        if (!origin || origin === 'null') {
+            req.headers.origin = process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 8080}`;
+        }
+    }
+    next();
+});
+
+// Better Auth routes (registration, login, logout, session, etc.)
+app.all('/api/auth/*splat', await toNodeHandler(auth));
+
+// Protect all API routes (except /api/auth/*) with authentication
+app.use('/api/users', isAuthenticated, UserRouter);
+app.use('/api/bugs', isAuthenticated, BugRouter);
+app.use('/api/bugs/:bugId/comments', isAuthenticated, CommentRouter);
+app.use('/api/bugs/:bugId/testCases', isAuthenticated, TestRouter);
+// Lab expects /tests path; mount alias
+app.use('/api/bugs/:bugId/tests', isAuthenticated, TestRouter);
 
 
 const port = process.env.PORT || 8080;
