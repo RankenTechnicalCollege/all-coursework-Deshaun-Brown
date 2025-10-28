@@ -123,15 +123,13 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    // Create new test case object
+    // Create new test case object with lab-required fields
     const newTest = {
       testName,
       testDescription,
       passed,
-      createdOn: new Date().toISOString(),
-      createdBy: req.user?.email || 'unknown',
-      lastUpdatedOn: new Date().toISOString(),
-      lastUpdatedBy: req.user?.email || 'unknown'
+      createdOn: new Date(),
+      createdBy: req.user?.email || 'unknown'
     };
     
     // Add test case to the bug's testCases array
@@ -142,10 +140,10 @@ router.post('/', async (req, res) => {
     
     debugTest(`New test case added to bug ${bugId}`);
     
+    // Lab-required audit log
     try {
       await saveAuditLog({
         col: 'test',
-        entity: 'test',
         op: 'insert',
         target: { bugId },
         update: newTest,
@@ -208,8 +206,9 @@ router.patch('/:testId', async (req, res) => {
     if (testDescription) updateFields[`testCases.${testIndex}.testDescription`] = testDescription;
     if (passed !== undefined) updateFields[`testCases.${testIndex}.passed`] = passed;
     
-  updateFields[`testCases.${testIndex}.lastUpdatedOn`] = new Date().toISOString();
-  updateFields[`testCases.${testIndex}.lastUpdatedBy`] = req.user?.email || 'unknown';
+    // Lab-required audit fields
+    updateFields[`testCases.${testIndex}.lastUpdatedOn`] = new Date();
+    updateFields[`testCases.${testIndex}.lastUpdatedBy`] = req.user?.email || 'unknown';
     
     // Update the specific test case in the array
     await db.collection('bugs').updateOne(
@@ -218,13 +217,14 @@ router.patch('/:testId', async (req, res) => {
     );
     
     debugTest(`Test at index ${testId} updated`);
+    
+    // Lab-required audit log
     try {
       await saveAuditLog({
         col: 'test',
-        entity: 'test',
         op: 'update',
         target: { bugId, testIndex },
-        update: Object.keys(validateResult.value),
+        update: updateFields,
         performedBy: req.user?.email || 'unknown'
       });
     } catch {}
@@ -286,10 +286,11 @@ router.delete('/:testId', async (req, res) => {
     );
     
     debugTest(`Test at index ${testId} deleted from bug ${bugId}`);
+    
+    // Lab-required audit log
     try {
       await saveAuditLog({
         col: 'test',
-        entity: 'test',
         op: 'delete',
         target: { bugId, testIndex },
         performedBy: req.user?.email || 'unknown'

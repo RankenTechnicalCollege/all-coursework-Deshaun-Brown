@@ -40,6 +40,12 @@ app.use('/api/auth', (req, _res, next) => {
     next();
 });
 
+// Public wrappers so anonymous users can register/sign-in via /api/users/*
+// These forward to Better Auth and must be defined BEFORE guarding /api/users
+app.post('/api/users/sign-up/email', (req, res) => res.redirect(307, '/api/auth/sign-up/email'));
+app.post('/api/users/sign-in/email', (req, res) => res.redirect(307, '/api/auth/sign-in/email'));
+app.post('/api/users/sign-out', (req, res) => res.redirect(307, '/api/auth/sign-out'));
+
 // Better Auth routes (registration, login, logout, session, etc.)
 app.all('/api/auth/*splat', await toNodeHandler(auth));
 

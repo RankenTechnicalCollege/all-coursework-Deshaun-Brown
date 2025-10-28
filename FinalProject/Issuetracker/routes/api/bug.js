@@ -49,7 +49,7 @@ const closeSchema = joi.object({
 });
 
 // GET /api/bugs/list - Return bugs with advanced search and pagination
-router.get('/list', async (req, res) => {
+router.get('/bugs', async (req, res) => {
   try {
     debugBug('GET /api/bugs called');
     const { 
@@ -241,17 +241,18 @@ router.post('/', async (req, res) => {
     
     const result = await db.collection('bugs').insertOne(newBug);
     debugBug(`New bug created with ID: ${result.insertedId}`);
-    // Audit log: insert
+    
+    // Lab-required audit log: track bug creation in edits collection
     try {
       await saveAuditLog({
         col: 'bug',
-        entity: 'bug',
         op: 'insert',
         target: { bugId: String(result.insertedId) },
         update: newBug,
         performedBy: req.user?.email || 'unknown',
       });
     } catch {}
+    
     res.status(200).json({ message: "New bug reported!", bugId: result.insertedId });
   } catch (error) {
     debugBug('Error creating bug:', error);
@@ -300,8 +301,9 @@ router.patch('/:bugId', async (req, res) => {
       updateFields.stepsToReproduce = stepsToReproduce;
     }
     
-  updateFields.lastUpdatedOn = new Date();
-  updateFields.lastUpdatedBy = req.user?.email || 'unknown';
+    // Lab-required audit fields
+    updateFields.lastUpdatedOn = new Date();
+    updateFields.lastUpdatedBy = req.user?.email || 'unknown';
     
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
@@ -309,15 +311,18 @@ router.patch('/:bugId', async (req, res) => {
     );
     
     debugBug(`Bug ${bugId} updated`);
+    
+    // Lab-required audit log: track changes in edits collection
     try {
       await saveAuditLog({
-        entity: 'bug',
-        operation: 'update',
-        bugId,
+        col: 'bug',
+        op: 'update',
+        target: { bugId },
+        update: updateFields,
         performedBy: req.user?.email || 'unknown',
-        changes: Object.keys(updateFields),
       });
     } catch {}
+    
     res.status(200).json({ message: `Bug ${bugId} updated!`, bugId: bugId });
   } catch (error) {
     debugBug('Error updating bug:', error);
@@ -355,12 +360,11 @@ router.patch('/:bugId/classification', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
+    // Lab-required fields for classification
     const updateFields = {
       classification,
       classifiedOn: new Date(),
       classifiedBy: req.user?.email || 'unknown',
-      lastUpdatedOn: new Date(),
-      lastUpdatedBy: req.user?.email || 'unknown',
     };
     
     await db.collection('bugs').updateOne(
@@ -368,16 +372,19 @@ router.patch('/:bugId/classification', async (req, res) => {
       { $set: updateFields }
     );
     
-    debugBug(`Bug ${bugId} classified`);
+    debugBug(`Bug ${bugId} classified as ${classification}`);
+    
+    // Lab-required audit log
     try {
       await saveAuditLog({
-        entity: 'bug',
-        operation: 'classify',
-        bugId,
+        col: 'bug',
+        op: 'update',
+        target: { bugId },
+        update: updateFields,
         performedBy: req.user?.email || 'unknown',
-        changes: ['classification'],
       });
     } catch {}
+    
     res.status(200).json({ message: `Bug ${bugId} classified!`, bugId: bugId });
   } catch (error) {
     debugBug('Error classifying bug:', error);
@@ -415,13 +422,12 @@ router.patch('/:bugId/assign', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
+    // Lab-required fields for assignment
     const updateFields = {
       assignedToUserId,
       assignedToUserName,
       assignedOn: new Date(),
       assignedBy: req.user?.email || 'unknown',
-      lastUpdatedOn: new Date(),
-      lastUpdatedBy: req.user?.email || 'unknown',
     };
     
     await db.collection('bugs').updateOne(
@@ -429,16 +435,19 @@ router.patch('/:bugId/assign', async (req, res) => {
       { $set: updateFields }
     );
     
-    debugBug(`Bug ${bugId} assigned`);
+    debugBug(`Bug ${bugId} assigned to ${assignedToUserName} (${assignedToUserId})`);
+    
+    // Lab-required audit log
     try {
       await saveAuditLog({
-        entity: 'bug',
-        operation: 'assign',
-        bugId,
+        col: 'bug',
+        op: 'update',
+        target: { bugId },
+        update: updateFields,
         performedBy: req.user?.email || 'unknown',
-        changes: ['assignedToUserId','assignedToUserName'],
       });
     } catch {}
+    
     res.status(200).json({ message: `Bug ${bugId} assigned!`, bugId: bugId });
   } catch (error) {
     debugBug('Error assigning bug:', error);
@@ -466,7 +475,7 @@ router.patch('/:bugId/close', async (req, res) => {
       return res.status(400).json({ error: validateResult.error });
     }
     
-  const { closed } = validateResult.value;
+    const { closed } = validateResult.value;
     
     const db = await connect();
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
@@ -476,32 +485,34 @@ router.patch('/:bugId/close', async (req, res) => {
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
+    // Lab-required fields for close/reopen
     const updateFields = {
       closed,
       closedOn: closed ? new Date() : null,
       closedBy: closed ? (req.user?.email || 'unknown') : null,
-      lastUpdatedOn: new Date(),
-      lastUpdatedBy: req.user?.email || 'unknown',
     };
-    debugBug(`The closed value is ${closed}`);
-
+    
+    debugBug(`Bug ${bugId} closed status set to: ${closed}`);
     
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
       { $set: updateFields }
     );
     
-    debugBug(`Bug ${bugId} closed status updated`);
+    debugBug(`Bug ${bugId} ${closed ? 'closed' : 'reopened'} successfully`);
+    
+    // Lab-required audit log
     try {
       await saveAuditLog({
-        entity: 'bug',
-        operation: 'close',
-        bugId,
+        col: 'bug',
+        op: 'update',
+        target: { bugId },
+        update: updateFields,
         performedBy: req.user?.email || 'unknown',
-        changes: ['closed'],
       });
     } catch {}
-    res.status(200).json({ message: `Bug ${bugId} closed!`, bugId: bugId });
+    
+    res.status(200).json({ message: `Bug ${bugId} ${closed ? 'closed' : 'reopened'}!`, bugId: bugId });
   } catch (error) {
     debugBug('Error closing bug:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -13,7 +13,8 @@ export const auth = betterAuth({
     "http://localhost:5173",
   ],
   secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-me",
-  database: mongodbAdapter(db, { client }),
+  // Use pluralized collection names (users, sessions, etc.) so they match the rest of the app
+  database: mongodbAdapter(db, { client, usePlural: true }),
   emailAndPassword: {
     enabled: true,
   },
@@ -21,9 +22,11 @@ export const auth = betterAuth({
     cookieCache: true,
     maxAge: 60 * 60, // seconds (1 hour)
   },
-  user: {
+  users: {
     additionalFields: {
+
       role: { type: "object", required: false },
+      
       profile: { type: "object", required: false },
     },
   },

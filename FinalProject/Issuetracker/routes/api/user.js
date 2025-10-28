@@ -25,6 +25,7 @@ router.use(express.urlencoded({extended:false}));
 // PATCH /api/users/me - Update own profile; hash password if changed; audit and rotate session
 router.patch('/me', isAuthenticated, async (req, res) => {
   try {
+    debugUser('PATCH /api/users/me called');
     const db = await connect();
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -35,8 +36,8 @@ router.patch('/me', isAuthenticated, async (req, res) => {
       return res.status(400).json({ error: validateResult.error });
     }
 
-    const { password, fullName, givenName, familyName, role } = validateResult.value;
-    const updateFields = {};
+  const { password, fullName, givenName, familyName, role } = validateResult.value;
+  const updateFields = {};
 
     if (password) {
       const saltRounds = 10;
@@ -47,8 +48,9 @@ router.patch('/me', isAuthenticated, async (req, res) => {
     if (familyName) updateFields.familyName = familyName;
     if (role) updateFields.role = role;
 
-    updateFields.lastUpdatedOn = new Date();
-    updateFields.lastUpdatedBy = req.user?.email || 'unknown';
+  // Lab-required audit fields
+  updateFields.lastUpdatedOn = new Date();
+  updateFields.lastUpdatedBy = req.user?.email || 'unknown';
 
     await db.collection('users').updateOne(
       { _id: newId(userId) },
@@ -58,11 +60,10 @@ router.patch('/me', isAuthenticated, async (req, res) => {
     try {
       await saveAuditLog({
         col: 'user',
-        entity: 'user',
         op: 'update',
         target: { userId },
-        update: Object.keys(updateFields),
-        performedBy: req.user?.email || 'unknown',
+        update: updateFields, // include changed fields and their new values
+        auth: req.user, // include full auth context per lab spec
       });
     } catch {}
 
@@ -76,13 +77,23 @@ router.patch('/me', isAuthenticated, async (req, res) => {
 // GET /api/users/me - Return current user's profile (requires auth)
 router.get('/me', isAuthenticated, async (req, res) => {
   try {
+    debugUser('GET /api/users/me called');
     const db = await connect();
-    // Better Auth user has id as string
     const userId = req.user?.id;
+    const email = req.user?.email;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const user = await db.collection('users').findOne({ _id: newId(userId) });
+
+    // Try by ObjectId when valid, else fall back to email
+    let user = null;
+    if (isValidId(userId)) {
+      user = await db.collection('users').findOne({ _id: newId(userId) });
+    }
+    if (!user && email) {
+      user = await db.collection('users').findOne({ email });
+    }
+
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json(user);
   } catch (err) {
@@ -197,7 +208,7 @@ router.get('/', async (req, res) => {
 // GET /api users = Return all users as JSON array
 router.get('/', async (req, res) => {
   try{
-    console.log('GET /api/users called');
+    debugUser('GET /api/users called');
     const db = await connect();
     const users = await db.collection('users').find({}).toArray();
     debugUser(`Found ${users.length} users`);
@@ -238,88 +249,27 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// POST /api/users/register - Register a new user
-router.post('/register', async (req, res) => {
-  try {
-    debugUser('POST /api/users/register called');
-    
-    // Validate request body with Joi
-    const validateResult = registerSchema.validate(req.body);
-    if (validateResult.error) {
-      debugUser(`Validation error: ${validateResult.error}`);
-      return res.status(400).json({ error: validateResult.error });
-    }
-    
-    const { email, password, givenName, familyName, role } = validateResult.value;
-    
-    const db = await connect();
-    
-    // Check if email already exists
-    const existingUser = await db.collection('users').findOne({ email: email });
-    if (existingUser) {
-      debugUser(`Email ${email} already registered`);
-      return res.status(400).json({ error: "Email already registered." });
-    }
-    
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-    // Create new user
-    const newUser = {
-      email: email,
-      password: hashedPassword,
-      givenName: givenName,
-      familyName: familyName,
-      role: role,
-      created: new Date()
-    };
-    
-    const result = await db.collection('users').insertOne(newUser);
-    debugUser(`New user registered with ID: ${result.insertedId}`);
-    res.status(200).json({ message: "New user registered!", userId: result.insertedId });
-  } catch (error) {
-    debugUser('Error registering user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// POST /api/users/sign-up/email - alias wrapper to Better Auth sign-up (preserves cookies)
+router.post('/sign-up/email', (req, res) => {
+  // Forward to Better Auth endpoint with method/body intact
+  return res.redirect(307, '/api/auth/sign-up/email');
 });
 
-// POST /api/users/login - Verify user credentials
-router.post('/login', async (req, res) => {
-  try {
-    debugUser('POST /api/users/login called');
-    
-    // Validate request body with Joi
-    const validateResult = loginSchema.validate(req.body);
-    if (validateResult.error) {
-      debugUser(`Validation error: ${validateResult.error}`);
-      return res.status(400).json({ error: validateResult.error });
-    }
-    
-    const { email, password } = validateResult.value;
-    
-    const db = await connect();
-    const user = await db.collection('users').findOne({ email: email });
-    
-    if (!user) {
-      debugUser(`User with email ${email} not found`);
-      return res.status(400).json({ error: "Invalid login credential provided. Please try again." });
-    }
-    
-    // Compare password with hash
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    
-    if (isValidPassword) {
-      debugUser(`User ${email} logged in successfully`);
-      res.status(200).json({ message: "Welcome back!", userId: user._id });
-    } else {
-      debugUser(`Invalid password for user ${email}`);
-      res.status(400).json({ error: "Invalid login credential provided. Please try again." });
-    }
-  } catch (error) {
-    debugUser('Error during login:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+
+
+
+
+// POST /api/users/sign-in/email - forward to Better Auth sign-in so cookie is set by auth
+router.post('/sign-in/email', (req, res) => {
+  return res.redirect(307, '/api/auth/sign-in/email');
+});
+
+
+
+
+// POST /api/users/sign-out - forward to Better Auth sign-out to clear cookie
+router.post('/sign-out', (req, res) => {
+  return res.redirect(307, '/api/auth/sign-out');
 });
 
 // PATCH /api/users/:userId - Update existing user
@@ -369,7 +319,9 @@ router.patch('/:userId', async (req, res) => {
       updateFields.role = role;
     }
     
-    updateFields.lastUpdated = new Date();
+  // Lab-required audit fields
+  updateFields.lastUpdatedOn = new Date();
+  updateFields.lastUpdatedBy = req.user?.email || 'unknown';
     
     await db.collection('users').updateOne(
       { _id: newId(userId) },
@@ -380,11 +332,11 @@ router.patch('/:userId', async (req, res) => {
     // Audit log
     try {
       await saveAuditLog({
-        entity: 'user',
-        operation: 'update',
-        userId,
-        performedBy: req.user?.email || 'unknown',
-        changes: Object.keys(updateFields),
+        col: 'user',
+        op: 'update',
+        target: { userId },
+        update: updateFields,
+        auth: req.user,
       });
     } catch {}
     res.status(200).json({ message: `User ${userId} updated!`, userId: userId });
@@ -419,10 +371,10 @@ router.delete('/:userId', async (req, res) => {
     // Audit log
     try {
       await saveAuditLog({
-        entity: 'user',
-        operation: 'delete',
-        userId,
-        performedBy: req.user?.email || 'unknown',
+        col: 'user',
+        op: 'delete',
+        target: { userId },
+        auth: req.user,
       });
     } catch {}
     res.status(200).json({ message: `User ${userId} deleted!`, userId: userId });

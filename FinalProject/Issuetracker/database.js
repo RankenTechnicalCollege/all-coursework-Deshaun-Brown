@@ -1,4 +1,3 @@
-
 import { MongoClient, ObjectId } from 'mongodb';
 import debug from 'debug';
 
@@ -50,7 +49,8 @@ async function saveAuditLog(entry) {
     ...entry,
     timestamp: entry?.timestamp ? new Date(entry.timestamp) : new Date(),
   };
-  await db.collection('AuditLog').insertOne(doc);
+  // Lab expects audit entries in 'edits' collection
+  await db.collection('edits').insertOne(doc);
   return doc;
 }
 
