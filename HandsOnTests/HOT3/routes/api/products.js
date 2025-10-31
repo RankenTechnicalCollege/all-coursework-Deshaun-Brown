@@ -1,7 +1,7 @@
 import express from 'express';
 import Joi from 'joi';
 import debug from 'debug';
-import { getProductCollection, ObjectId } from '../../database.js';
+import { getProductCollection, ObjectId, searchProducts } from '../../database.js';
 
 const debugProduct = debug('app:ProductRouter');
 
@@ -9,15 +9,26 @@ const router = express.Router();
 
 // Utility to escape user input for use in a RegExp
 function escapeRegExp(str) {
-	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 const productSchema = Joi.object({
-	name: Joi.string().required(),
-	description: Joi.string().allow('').optional(),
-	category: Joi.string().required(),
-	price: Joi.number().required()
+  name: Joi.string().required(),
+  description: Joi.string().allow('').optional(),
+  category: Joi.string().required(),
+  price: Joi.number().required()
 });
+
+// Query parameter validation schema
+const searchSchema = Joi.object({
+  keywords: Joi.string().optional(),
+  category: Joi.string().optional(),
+  maxPrice: Joi.number().optional(),
+  minPrice: Joi.number().optional(),
+  sortBy: Joi.string().valid('name', 'category', 'lowestPrice', 'newest').default('name'),
+  pageSize: Joi.number().default(5),
+  pageNumber: Joi.number().default(1)
+}).optional();
 
 // PATCH schema: at least one field must be present
 const productPatchSchema = Joi.object({
@@ -27,16 +38,27 @@ const productPatchSchema = Joi.object({
 	price: Joi.number().optional()
 }).min(1);
 
-// GET /api/products - list all products
+// GET /api/products - Search products with filters
 router.get('/', async (req, res) => {
-	try {
-		debugProduct('GET /api/products called');
-		const col = await getProductCollection();
-		const products = await col.find({}).toArray();
-		debugProduct(`Found ${products.length} products`);
-		return res.status(200).json(products);
-	} catch (err) {
-		debugProduct('Failed to list products:', err);
+  try {
+    debugProduct('GET /api/products called with query:', req.query);
+
+    // Validate and process query parameters
+    const { error, value } = searchSchema.validate(req.query);
+    if (error) {
+      return res.status(400).json({
+        message: 'Invalid search parameters',
+        details: error.details
+      });
+    }
+
+    // Search products with validated parameters
+    const products = await searchProducts(value);
+    
+    debugProduct(`Found ${products.length} products matching search criteria`);
+    return res.status(200).json(products);
+  } catch (err) {
+    debugProduct('Failed to search products:', err);
 		return res.status(500).json({ message: 'Failed to list products', error: err.message });
 	}
 });

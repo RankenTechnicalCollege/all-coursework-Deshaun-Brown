@@ -1,6 +1,8 @@
 import express from 'express';
 import debug from 'debug';
 import { connect, newId, isValidId, saveAuditLog } from '../../database.js';
+import { requirePermission } from '../../middleware/roles.js';
+import { isAuthenticated } from '../../middleware/isAuthenticated.js';
 import joi from 'joi';
 
 /*
@@ -48,8 +50,8 @@ const closeSchema = joi.object({
   closed: joi.boolean().required()
 });
 
-// GET /api/bugs/list - Return bugs with advanced search and pagination
-router.get('/bugs', async (req, res) => {
+// GET /api/bugs/list - Return bugs with advanced search and pagination (canViewData required)
+router.get('/bugs', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     debugBug('GET /api/bugs called');
     const { 
@@ -183,8 +185,8 @@ router.get('/', async (req, res) => {
 });
 
 
-// GET /api/bugs/:bugId - Return a specific bug by ID
-router.get('/:bugId', async (req, res) => {
+// GET /api/bugs/:bugId - Return a specific bug by ID (canViewData required)
+router.get('/:bugId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`GET /api/bugs/${bugId} called`);

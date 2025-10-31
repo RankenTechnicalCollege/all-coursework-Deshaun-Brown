@@ -16,6 +16,16 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Always-on request 5xx logger (prints even if DEBUG is not enabled)
+app.use((req, res, next) => {
+    res.on('finish', () => {
+        if (res.statusCode >= 500) {
+            console.error(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} -> ${res.statusCode}`);
+        }
+    });
+    next();
+});
+
 // CORS for frontend and Postman testing
 app.use(cors({
     origin: [
@@ -66,4 +76,19 @@ app.listen(port,() => {
 
 app.get('/', (req, res) => {
     res.send('Hello, world!');
+});
+
+// Global error handler (Express 5) - logs stack traces to terminal
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (res.headersSent) return next(err);
+    res.status(err.status || 500).json({ error: 'Internal server error' });
+});
+
+// Process-level safety nets
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Promise Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
 });

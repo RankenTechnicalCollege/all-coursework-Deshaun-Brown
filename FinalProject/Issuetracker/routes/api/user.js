@@ -3,6 +3,7 @@ import debug from 'debug';
 import bcrypt from 'bcrypt';
 import {connect, newId, isValidId, saveAuditLog} from '../../database.js';
 import { isAuthenticated } from '../../middleware/isAuthenticated.js';
+import { requirePermission } from '../../middleware/roles.js';
 import joi from 'joi';
 
 /*
@@ -22,7 +23,35 @@ const router = express.Router();
 
 router.use(express.json());
 router.use(express.urlencoded({extended:false}));
-// PATCH /api/users/me - Update own profile; hash password if changed; audit and rotate session
+
+// Define Joi schemas
+const registerSchema = joi.object({
+  email: joi.string().email().required(),
+  password: joi.string().min(6).required(),
+  givenName: joi.string().min(1).required(),
+  familyName: joi.string().min(1).required(),
+  role: joi.alternatives().try(
+    joi.string(),
+    joi.array().items(joi.string())
+  ).required()
+});
+
+const loginSchema = joi.object({
+  email: joi.string().email().required(),
+  password: joi.string().required()
+});
+
+const updateSchema = joi.object({
+  email: joi.string().email().optional(),
+  password: joi.string().min(6).optional(),
+  fullName: joi.string().min(1).optional(),
+  givenName: joi.string().min(1).optional(),
+  familyName: joi.string().min(1).optional(),
+  role: joi.alternatives().try(
+    joi.string(),
+    joi.array().items(joi.string())
+  ).optional()
+});
 router.patch('/me', isAuthenticated, async (req, res) => {
   try {
     debugUser('PATCH /api/users/me called');
@@ -37,6 +66,13 @@ router.patch('/me', isAuthenticated, async (req, res) => {
     }
 
   const { password, fullName, givenName, familyName, role } = validateResult.value;
+  
+  // Step 5: Do not allow the user to change their own role
+  if (role !== undefined) {
+    debugUser('User attempted to change own role - forbidden');
+    return res.status(403).json({ error: 'Forbidden: cannot change your own role' });
+  }
+  
   const updateFields = {};
 
     if (password) {
@@ -46,7 +82,6 @@ router.patch('/me', isAuthenticated, async (req, res) => {
     if (fullName) updateFields.fullName = fullName;
     if (givenName) updateFields.givenName = givenName;
     if (familyName) updateFields.familyName = familyName;
-    if (role) updateFields.role = role;
 
   // Lab-required audit fields
   updateFields.lastUpdatedOn = new Date();
@@ -88,10 +123,10 @@ router.get('/me', isAuthenticated, async (req, res) => {
     // Try by ObjectId when valid, else fall back to email
     let user = null;
     if (isValidId(userId)) {
-      user = await db.collection('users').findOne({ _id: newId(userId) });
+      user = await db.collection('users').findOne({ _id: newId(userId) }, { projection: { password: 0 } });
     }
     if (!user && email) {
-      user = await db.collection('users').findOne({ email });
+      user = await db.collection('users').findOne({ email }, { projection: { password: 0 } });
     }
 
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -102,33 +137,13 @@ router.get('/me', isAuthenticated, async (req, res) => {
   }
 });
 
-// Define Joi schemas
-const registerSchema = joi.object({
-  email: joi.string().email().required(),
-  password: joi.string().min(6).required(),
-  givenName: joi.string().min(1).required(),
-  familyName: joi.string().min(1).required(),
-  role: joi.string().valid('admin', 'user', 'developer', 'tester').required()
-});
-
-const loginSchema = joi.object({
-  email: joi.string().email().required(),
-  password: joi.string().required()
-});
-
-const updateSchema = joi.object({
-  email: joi.string().email().optional(),
-  password: joi.string().min(6).optional(),
-  fullName: joi.string().min(1).optional(),
-  givenName: joi.string().min(1).optional(),
-  familyName: joi.string().min(1).optional(),
-  role: joi.string().valid('admin', 'user', 'developer', 'tester').optional()
-});
 
 
-// GET /api/users/- Return users with advanced search and pagination
-router.get('/', async (req, res) => {
+
+// GET /api/users - Return users with advanced search and pagination (canViewData required)
+router.get('/', requirePermission('canViewData'), async (req, res) => {
   try {
+    debugUser('GET /api/users called');
     const db = await connect();
     const {
       keywords,
@@ -191,38 +206,23 @@ router.get('/', async (req, res) => {
     const skip = (parseInt(pageNumber) - 1) * limit;
 
     const users = await db.collection('users')
-      .find(query)
+      .find(query, { projection: { password: 0 } })
       .sort(sort)
       .skip(skip)
       .limit(limit)
       .toArray();
 
+    debugUser(`Found ${users.length} users`);
     res.json(users);
   } catch (error) {
-    console.error('Error fetching users:', error);
+    debugUser('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 
-// GET /api users = Return all users as JSON array
-router.get('/', async (req, res) => {
-  try{
-    debugUser('GET /api/users called');
-    const db = await connect();
-    const users = await db.collection('users').find({}).toArray();
-    debugUser(`Found ${users.length} users`);
-    res.json(users);
-  } catch (error){
-    debugUser('Error fetching users:',error);
-    res.status(500).json({error: 'Internal server error'});
-    
-  }
-});
-
-
 // GET /api/users/:userId - Return a specific user by ID
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', requirePermission('canViewData'), async (req, res) => {
   try{
     const { userId} = req.params;
     debugUser(`GET /api/users/${userId} called`);
@@ -273,7 +273,7 @@ router.post('/sign-out', (req, res) => {
 });
 
 // PATCH /api/users/:userId - Update existing user
-router.patch('/:userId', async (req, res) => {
+router.patch('/:userId', requirePermission('canEditAnyUser'), async (req, res) => {
   try {
     const { userId } = req.params;
     debugUser(`PATCH /api/users/${userId} called`);
@@ -347,7 +347,7 @@ router.patch('/:userId', async (req, res) => {
 });
 
 // DELETE /api/users/:userId - Delete user
-router.delete('/:userId', async (req, res) => {
+router.delete('/:userId', requirePermission('canEditAnyUser'), async (req, res) => {
   try {
     const { userId } = req.params;
     debugUser(`DELETE /api/users/${userId} called`);

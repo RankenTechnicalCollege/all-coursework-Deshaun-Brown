@@ -2,6 +2,7 @@ import express from 'express';
 import debug from 'debug';
 import { connect, newId, isValidId, saveAuditLog } from '../../database.js';
 import joi from 'joi';
+import { requirePermission } from '../../middleware/roles.js';
 
 const debugTest = debug('app:TestRouter');
 const router = express.Router({ mergeParams: true }); // mergeParams to access :bugId
@@ -239,54 +240,44 @@ router.patch('/:testId', async (req, res) => {
   }
 });
 
-// DELETE /api/bugs/:bugId/testCases/:testId - Delete test case by index
-router.delete('/:testId', async (req, res) => {
+// DELETE /api/bugs/:bugId/tests/:testId - Delete test case by index (QA only)
+router.delete('/:testId', requirePermission('canDeleteTestCase'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
     debugTest(`DELETE /api/bugs/${bugId}/testCases/${testId} called`);
-    
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);
       return res.status(404).json({ error: `bugId ${bugId} is not a valid ObjectId.` });
     }
-    
     const db = await connect();
-    
     // Check if bug exists
     const bug = await db.collection('bugs').findOne({ _id: newId(bugId) });
     if (!bug) {
       debugTest(`Bug ${bugId} not found`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
-  
     // Validate testId as array index
     const testIndex = parseInt(testId);
     const testCases = bug.testCases || [];
-
     if (isNaN(testIndex) || testIndex < 0 || testIndex >= testCases.length) {
       debugTest(`Test at index ${testId} not found for bug ${bugId}`);
       return res.status(404).json({ error: `Test at index ${testId} not found.` });
     }
-  
     // Get the test case that will be deleted (for response)
     const deletedTestCase = testCases[testIndex];
-    
     // Remove the test case from the array using $unset and $pull
     // First, unset the array element at the specific index
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
       { $unset: { [`testCases.${testIndex}`]: 1 } }
     );
-    
     // Then pull the null values to compact the array
     await db.collection('bugs').updateOne(
       { _id: newId(bugId) },
       { $pull: { testCases: null } }
     );
-    
     debugTest(`Test at index ${testId} deleted from bug ${bugId}`);
-    
     // Lab-required audit log
     try {
       await saveAuditLog({
@@ -296,7 +287,6 @@ router.delete('/:testId', async (req, res) => {
         performedBy: req.user?.email || 'unknown'
       });
     } catch {}
-
     res.status(200).json({ 
       message: `Test at index ${testId} deleted!`, 
       deletedTestCase: deletedTestCase

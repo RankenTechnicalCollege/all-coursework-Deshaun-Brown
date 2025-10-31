@@ -22,13 +22,19 @@ export const auth = betterAuth({
     cookieCache: true,
     maxAge: 60 * 60, // seconds (1 hour)
   },
-  users: {
-    additionalFields: {
-
-      role: { type: "object", required: false },
-      
-      profile: { type: "object", required: false },
-    },
+   user: {
+        additionalFields: {
+            role: {
+                type: "object",
+                required: true,
+            },
+            profile: {
+                type: "object",
+                required: true,
+                defaultValue: {}
+               
+            }
+        },
   },
 });
 
