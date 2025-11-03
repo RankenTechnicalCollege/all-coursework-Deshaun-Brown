@@ -62,6 +62,6 @@ async function saveAuditLog(entry) {
 } */
 
 
-export { newId, connect, isValidId, getClient, getDatabase, saveAuditLog };
+export { newId, connect, isValidId, getClient, getDatabase, saveAuditLog};
 
 //ping();

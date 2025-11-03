@@ -1,8 +1,9 @@
 import express from 'express';
 import debug from 'debug';
 import { connect, newId, isValidId, saveAuditLog } from '../../database.js';
-import joi from 'joi';
+import { isAuthenticated } from '../../middleware/isAuthenticated.js';
 import { requirePermission } from '../../middleware/roles.js';
+import joi from 'joi';
 
 const debugTest = debug('app:TestRouter');
 const router = express.Router({ mergeParams: true }); // mergeParams to access :bugId
@@ -23,11 +24,11 @@ const updateTestSchema = joi.object({
   testName: joi.string().min(1).optional()
 });
 
-// GET /api/bugs/:bugId/testCases - Get all test cases for a bug (with optional filtering)
-router.get('/', async (req, res) => {
+// GET /api/bugs/:bugId/tests - Get all test cases for a bug (canViewData required)
+router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`GET /api/bugs/${bugId}/testCases called`);
+    debugTest(`GET /api/bugs/${bugId}/tests called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -54,8 +55,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/bugs/:bugId/tests/:testId - Get specific test case by index
-router.get('/:testId', async (req, res) => {
+// GET /api/bugs/:bugId/tests/:testId - Get specific test case by index (canViewData required)
+router.get('/:testId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
     debugTest(`GET /api/bugs/${bugId}/tests/${testId} called`);
@@ -94,11 +95,11 @@ router.get('/:testId', async (req, res) => {
 });
      
 
-// POST /api/bugs/:bugId/testCases - Create new test case
-router.post('/', async (req, res) => {
+// POST /api/bugs/:bugId/tests - Create new test case (canAddTestCase required)
+router.post('/', isAuthenticated, requirePermission('canAddTestCase'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`POST /api/bugs/${bugId}/testCases called`);
+    debugTest(`POST /api/bugs/${bugId}/tests called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -162,11 +163,11 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/bugs/:bugId/testCases/:testId - Update test case by index
-router.patch('/:testId', async (req, res) => {
+// PATCH /api/bugs/:bugId/tests/:testId - Update test case by index (canEditTestCase required)
+router.patch('/:testId', isAuthenticated, requirePermission('canEditTestCase'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`PATCH /api/bugs/${bugId}/testCases/${testId} called`);
+    debugTest(`PATCH /api/bugs/${bugId}/tests/${testId} called`);
     
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
@@ -240,11 +241,11 @@ router.patch('/:testId', async (req, res) => {
   }
 });
 
-// DELETE /api/bugs/:bugId/tests/:testId - Delete test case by index (QA only)
-router.delete('/:testId', requirePermission('canDeleteTestCase'), async (req, res) => {
+// DELETE /api/bugs/:bugId/tests/:testId - Delete test case by index (canDeleteTestCase required)
+router.delete('/:testId', isAuthenticated, requirePermission('canDeleteTestCase'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`DELETE /api/bugs/${bugId}/testCases/${testId} called`);
+    debugTest(`DELETE /api/bugs/${bugId}/tests/${testId} called`);
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);

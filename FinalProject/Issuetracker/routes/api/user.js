@@ -141,7 +141,7 @@ router.get('/me', isAuthenticated, async (req, res) => {
 
 
 // GET /api/users - Return users with advanced search and pagination (canViewData required)
-router.get('/', requirePermission('canViewData'), async (req, res) => {
+router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     debugUser('GET /api/users called');
     const db = await connect();
@@ -222,7 +222,7 @@ router.get('/', requirePermission('canViewData'), async (req, res) => {
 
 
 // GET /api/users/:userId - Return a specific user by ID
-router.get('/:userId', requirePermission('canViewData'), async (req, res) => {
+router.get('/:userId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try{
     const { userId} = req.params;
     debugUser(`GET /api/users/${userId} called`);
@@ -234,7 +234,10 @@ router.get('/:userId', requirePermission('canViewData'), async (req, res) => {
     }
   
     const db = await connect();
-    const user = await db.collection('users').findOne({_id: newId(userId)});
+    const user = await db.collection('users').findOne(
+      { _id: newId(userId) },
+      { projection: { password: 0 } }
+    );
 
     if (!user) {
       debugUser(`User ${userId} not found`);
@@ -273,7 +276,7 @@ router.post('/sign-out', (req, res) => {
 });
 
 // PATCH /api/users/:userId - Update existing user
-router.patch('/:userId', requirePermission('canEditAnyUser'), async (req, res) => {
+router.patch('/:userId', isAuthenticated, requirePermission('canEditAnyUser'), async (req, res) => {
   try {
     const { userId } = req.params;
     debugUser(`PATCH /api/users/${userId} called`);
@@ -347,7 +350,7 @@ router.patch('/:userId', requirePermission('canEditAnyUser'), async (req, res) =
 });
 
 // DELETE /api/users/:userId - Delete user
-router.delete('/:userId', requirePermission('canEditAnyUser'), async (req, res) => {
+router.delete('/:userId', isAuthenticated, requirePermission('canEditAnyUser'), async (req, res) => {
   try {
     const { userId } = req.params;
     debugUser(`DELETE /api/users/${userId} called`);

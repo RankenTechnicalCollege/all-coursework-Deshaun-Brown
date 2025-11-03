@@ -1,6 +1,8 @@
 import express from 'express';
 import debug from 'debug';
 import { connect, newId, isValidId } from '../../database.js';
+import { isAuthenticated } from '../../middleware/isAuthenticated.js';
+import { requirePermission } from '../../middleware/roles.js';
 import joi from 'joi';
 
 
@@ -17,8 +19,8 @@ const createCommentSchema = joi.object({
   text: joi.string().min(1).optional()
 });
 
-// GET /api/bugs/:bugId/comments - Get all comments for a bug
-router.get('/', async (req, res) => {
+// GET /api/bugs/:bugId/comments - Get all comments for a bug (canViewData required)
+router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId } = req.params;
     debugComment(`GET /api/bugs/${bugId}/comments called`);
@@ -49,8 +51,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/bugs/:bugId/comments/:commentId - Get specific comment
-router.get('/:commentId', async (req, res) => {
+// GET /api/bugs/:bugId/comments/:commentId - Get specific comment (canViewData required)
+router.get('/:commentId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId, commentId } = req.params;
     debugComment(`GET /api/bugs/${bugId}/comments/${commentId} called`);
@@ -88,8 +90,8 @@ router.get('/:commentId', async (req, res) => {
   }
 });
 
-// POST /api/bugs/:bugId/comments - Create new comment
-router.post('/', async (req, res) => {
+// POST /api/bugs/:bugId/comments - Create new comment (canAddComments required)
+router.post('/', isAuthenticated, requirePermission('canAddComments'), async (req, res) => {
   try {
     const { bugId } = req.params;
     debugComment(`POST /api/bugs/${bugId}/comments called`);

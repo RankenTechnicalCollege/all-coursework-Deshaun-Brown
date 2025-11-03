@@ -170,8 +170,8 @@ router.get('/bugs', isAuthenticated, requirePermission('canViewData'), async (re
   }
 });
 
-// GET /api/bugs - Return all bugs as JSON array
-router.get('/', async (req, res) => {
+// GET /api/bugs - Return all bugs (canViewData required)
+router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     debugBug('GET /api/bugs called');
     const db = await connect();
@@ -214,10 +214,10 @@ router.get('/:bugId', isAuthenticated, requirePermission('canViewData'), async (
 });
 
 
-// POST /api/bugs - Create a new bug
-router.post('/', async (req, res) => {
+// POST /api/bug/new - Create a new bug (canCreateBug required)
+router.post('/new', isAuthenticated, requirePermission('canCreateBug'), async (req, res) => {
   try {
-    debugBug('POST /api/bugs called');
+    debugBug('POST /api/bug/new called');
     
     // Validate request body with Joi
     const validateResult = createBugSchema.validate(req.body);
@@ -237,6 +237,7 @@ router.post('/', async (req, res) => {
       stepsToReproduce,
       createdOn: new Date(),
       createdBy: req.user?.email || 'unknown',
+      authorOfBug: req.user?.email || 'unknown',
       classification: 'unclassified',
       closed: false
     };
@@ -264,7 +265,8 @@ router.post('/', async (req, res) => {
 
 
 // PATCH /api/bugs/:bugId - Update existing bug
-router.patch('/:bugId', async (req, res) => {
+// Permissions: canEditAnyBug OR (canEditIfAssignedTo AND assigned) OR (canEditMyBug AND author)
+router.patch('/:bugId', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId} called`);
@@ -288,6 +290,22 @@ router.patch('/:bugId', async (req, res) => {
     if (!bug) {
       debugBug(`Bug ${bugId} not found for update`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
+    }
+    
+    // Check permissions
+    const { getEffectivePermissions } = await import('../../middleware/roles.js');
+    const perms = await getEffectivePermissions(req);
+    const userEmail = req.user?.email;
+    const isAssigned = bug.assignedToUserId === req.user?.id || bug.assignedToUserName === userEmail;
+    const isAuthor = bug.authorOfBug === userEmail || bug.createdBy === userEmail;
+    
+    const canEdit = perms.canEditAnyBug || 
+                    (perms.canEditIfAssignedTo && isAssigned) || 
+                    (perms.canEditMyBug && isAuthor);
+    
+    if (!canEdit) {
+      debugBug(`User ${userEmail} lacks permission to edit bug ${bugId}`);
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions to edit this bug' });
     }
     
     const { title, description, stepsToReproduce } = validateResult.value;
@@ -333,11 +351,12 @@ router.patch('/:bugId', async (req, res) => {
 });
 
 
-// PATCH /api/bugs/:bugId/classification - Update bug classification
-router.patch('/:bugId/classification', async (req, res) => {
+// PATCH /api/bugs/:bugId/classify - Update bug classification
+// Permissions: canClassifyAnyBug OR (canEditIfAssignedTo AND assigned) OR (canEditMyBug AND author)
+router.patch('/:bugId/classify', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId}/classification called`);
+    debugBug(`PATCH /api/bugs/${bugId}/classify called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {
@@ -360,6 +379,22 @@ router.patch('/:bugId/classification', async (req, res) => {
     if (!bug) {
       debugBug(`Bug ${bugId} not found for classification`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
+    }
+    
+    // Check permissions
+    const { getEffectivePermissions } = await import('../../middleware/roles.js');
+    const perms = await getEffectivePermissions(req);
+    const userEmail = req.user?.email;
+    const isAssigned = bug.assignedToUserId === req.user?.id || bug.assignedToUserName === userEmail;
+    const isAuthor = bug.authorOfBug === userEmail || bug.createdBy === userEmail;
+    
+    const canClassify = perms.canClassifyAnyBug || 
+                        (perms.canEditIfAssignedTo && isAssigned) || 
+                        (perms.canEditMyBug && isAuthor);
+    
+    if (!canClassify) {
+      debugBug(`User ${userEmail} lacks permission to classify bug ${bugId}`);
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions to classify this bug' });
     }
     
     // Lab-required fields for classification
@@ -396,7 +431,8 @@ router.patch('/:bugId/classification', async (req, res) => {
 
 
 // PATCH /api/bugs/:bugId/assign - Assign bug to user
-router.patch('/:bugId/assign', async (req, res) => {
+// Permissions: canReassignAnyBug OR (canReassignIfAssignedTo AND assigned) OR (canEditMyBug AND author)
+router.patch('/:bugId/assign', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/assign called`);
@@ -422,6 +458,22 @@ router.patch('/:bugId/assign', async (req, res) => {
     if (!bug) {
       debugBug(`Bug ${bugId} not found for assignment`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
+    }
+    
+    // Check permissions
+    const { getEffectivePermissions } = await import('../../middleware/roles.js');
+    const perms = await getEffectivePermissions(req);
+    const userEmail = req.user?.email;
+    const isAssigned = bug.assignedToUserId === req.user?.id || bug.assignedToUserName === userEmail;
+    const isAuthor = bug.authorOfBug === userEmail || bug.createdBy === userEmail;
+    
+    const canReassign = perms.canReassignAnyBug || 
+                        (perms.canReassignIfAssignedTo && isAssigned) || 
+                        (perms.canEditMyBug && isAuthor);
+    
+    if (!canReassign) {
+      debugBug(`User ${userEmail} lacks permission to reassign bug ${bugId}`);
+      return res.status(403).json({ error: 'Forbidden: insufficient permissions to reassign this bug' });
     }
     
     // Lab-required fields for assignment
@@ -458,8 +510,8 @@ router.patch('/:bugId/assign', async (req, res) => {
 });
 
 
-// PATCH /api/bugs/:bugId/close - Close bug
-router.patch('/:bugId/close', async (req, res) => {
+// PATCH /api/bugs/:bugId/close - Close bug (canCloseAnyBug required)
+router.patch('/:bugId/close', isAuthenticated, requirePermission('canCloseAnyBug'), async (req, res) => {
   try {
     const { bugId } = req.params;
     debugBug(`PATCH /api/bugs/${bugId}/close called`);
