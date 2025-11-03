@@ -187,13 +187,14 @@ const getUsersCollection = async () => {
 
 /**
  * List all users
- * @returns {Promise<Array>} Array of users with passwords excluded
+ * @param {boolean} includePassword - Whether to include password in results
+ * @returns {Promise<Array>} Array of users
  */
-const listUsers = async () => {
+const listUsers = async (includePassword = true) => {
   const collection = await getUsersCollection();
   return collection
     .find({})
-    .project({ password: 0 })
+    .project(includePassword ? {} : { password: 0 })
     .toArray();
 };
 

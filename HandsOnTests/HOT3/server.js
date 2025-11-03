@@ -1,6 +1,3 @@
-import { config } from 'dotenv';
-config(); // Load environment variables first
-
 import express from 'express';
 import { toNodeHandler } from 'better-auth/node';
 import productRouter from './routes/api/products.js';

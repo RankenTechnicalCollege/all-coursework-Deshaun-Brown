@@ -10,6 +10,8 @@ import {
 } from '../../database.js';
 import { auth } from '../../auth.js';
 import { isAuthenticated } from '../../middleware/isAuthenticated.js';
+import { hasRole } from '../../middleware/hasRole.js';
+import { validId } from '../../middleware/validId.js';
 
 const debugUser = debug('app:UserRouter');
 const router = express.Router();
@@ -29,11 +31,18 @@ const updateSchema = Joi.object({
   role: Joi.string().valid('customer', 'admin').optional()
 }).min(1).required();
 
-// GET /api/users - List all users
-router.get('/', isAuthenticated, async (req, res) => {
+// PATCH /me schema - accepts fullName, email, password
+const meUpdateSchema = Joi.object({
+  fullName: Joi.string().min(2).optional(),
+  email: Joi.string().email().optional(),
+  password: Joi.string().min(6).optional()
+}).min(1).required();
+
+// GET /api/users - List all users (admin only)
+router.get('/', hasRole('admin'), async (req, res) => {
   try {
     debugUser('GET /api/users called');
-    const users = await listUsers();
+    const users = await listUsers(true); // Include passwords
     debugUser(`Found ${users.length} users`);
     res.status(200).json(users);
   } catch (error) {
@@ -49,7 +58,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.get('/me', isAuthenticated, async (req, res) => {
   try {
     debugUser('GET /api/users/me called');
-    const user = await findUserByEmail(req.user.email);
+    const user = await findUserByEmail(req.user.email, true); // Include password
 
     if (!user) {
       return res.status(404).json({ message: 'User profile not found' });
@@ -65,13 +74,13 @@ router.get('/me', isAuthenticated, async (req, res) => {
   }
 });
 
-// GET /api/users/:id - Get user by ID
-router.get('/:id', isAuthenticated, async (req, res) => {
+// GET /api/users/:userId - Get user by ID (admin only)
+router.get('/:userId', isAuthenticated, hasRole('admin'), validId('userId'), async (req, res) => {
   try {
-    const { id } = req.params;
-    debugUser(`GET /api/users/${id} called`);
+    const { userId } = req.params;
+    debugUser(`GET /api/users/${userId} called`);
     
-    const user = await findUserById(id);
+    const user = await findUserById(userId, true); // Include password
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -82,6 +91,55 @@ router.get('/:id', isAuthenticated, async (req, res) => {
     debugUser('Error fetching user:', error);
     res.status(500).json({ 
       message: 'Failed to fetch user',
+      error: error.message 
+    });
+  }
+});
+
+// PATCH /api/users/me - Update current user (accepts fullName, email, password)
+router.patch('/me', isAuthenticated, async (req, res) => {
+  try {
+    debugUser('PATCH /api/users/me called');
+
+    // Validate with meUpdateSchema (fullName, email, password only)
+    const { error, value } = meUpdateSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true
+    });
+    
+    if (error) {
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        details: error.details.map(d => ({
+          message: d.message,
+          path: d.path
+        }))
+      });
+    }
+
+    // Map fullName to name for database storage
+    const { fullName, ...rest } = value;
+    const updateData = {
+      ...rest,
+      ...(fullName ? { name: fullName } : {}),
+      lastUpdatedOn: new Date()
+    };
+
+    const userId = req.user?.id;
+    const result = await updateUser(userId, updateData);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ 
+      message: 'Profile updated successfully',
+      userId 
+    });
+  } catch (error) {
+    debugUser('Error updating profile:', error);
+    res.status(500).json({ 
+      message: 'Failed to update profile',
       error: error.message 
     });
   }

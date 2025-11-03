@@ -1,4 +1,5 @@
 import { auth } from '../auth.js';
+import { findUserByEmail } from '../database.js';
 
 export async function isAuthenticated(req, res, next) {
   try {
@@ -11,7 +12,22 @@ export async function isAuthenticated(req, res, next) {
       });
     }
 
-    req.user = session.user;
+    // Start with user from session
+    let user = session.user;
+
+    // If role (or name) is missing in the session payload, enrich from DB
+    if (!user?.role || !user?.name) {
+      try {
+        const dbUser = await findUserByEmail(user.email, true);
+        if (dbUser) {
+          user = { ...user, role: dbUser.role ?? user.role, name: dbUser.name ?? user.name };
+        }
+      } catch {
+        // Best-effort enrichment; continue with whatever we have
+      }
+    }
+
+    req.user = user;
     req.session = session.session;
     next();
   } catch (error) {

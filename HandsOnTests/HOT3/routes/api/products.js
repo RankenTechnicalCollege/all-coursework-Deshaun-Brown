@@ -2,13 +2,17 @@ import express from 'express';
 import Joi from 'joi';
 import debug from 'debug';
 import { getProductCollection, ObjectId, searchProducts } from '../../database.js';
+import { isAuthenticated } from '../../middleware/isAuthenticated.js';
+import { hasRole } from '../../middleware/hasRole.js';
+import { validId } from '../../middleware/validId.js';
+import { validate } from '../../middleware/validate.js';
 
 const debugProduct = debug('app:ProductRouter');
 
 const router = express.Router();
 
 // Utility to escape user input for use in a RegExp
-function escapeRegExp(str) {
+async function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
@@ -30,7 +34,7 @@ const searchSchema = Joi.object({
   pageNumber: Joi.number().default(1)
 }).optional();
 
-// PATCH schema: at least one field must be present
+// PATCH schema/update: at least one field must be present
 const productPatchSchema = Joi.object({
 	name: Joi.string().optional(),
 	description: Joi.string().allow('').optional(),
@@ -63,9 +67,9 @@ router.get('/', async (req, res) => {
 	}
 });
 
-// GET /api/products/name/:productName - find product by name (case-insensitive exact match)
+// GET /api/products/name/:productName - find products by partial name match (case-insensitive)
 // Note: This router is mounted at `/api/products`, so the route path here should NOT repeat that prefix.
-router.get('/name/:productName', async (req, res) => {
+router.get('/name/:productName', isAuthenticated, async (req, res) => {
 	try {
 		const rawName = req.params.productName ?? '';
 		const cleanName = rawName.trim(); // remove leading/trailing whitespace/newlines
@@ -75,27 +79,26 @@ router.get('/name/:productName', async (req, res) => {
 		}
 
 		const col = await getProductCollection();
-		// Case-insensitive exact match on name
-		const regex = new RegExp(`^${escapeRegExp(cleanName)}$`, 'i');
-		const product = await col.findOne({ name: { $regex: regex } });
+		// Case-insensitive partial match on name (contains search term)
+		const regex = new RegExp(await escapeRegExp(cleanName), 'i');
+		const products = await col.find({ name: { $regex: regex } }).toArray();
 
-		if (!product) {
-			return res.status(404).json({ message: 'Product not found' });
+		if (products.length === 0) {
+			return res.status(404).json({ message: 'No products found' });
 		}
 
-		debugProduct(`Found product by name: ${cleanName}`);
-		return res.status(200).json(product);
+		debugProduct(`Found ${products.length} product(s) matching: ${cleanName}`);
+		return res.status(200).json(products);
 	} catch (err) {
-		debugProduct('Failed to get product by name:', err);
-		return res.status(500).json({ message: 'Failed to get product by name', error: err.message });
+		debugProduct('Failed to get products by name:', err);
+		return res.status(500).json({ message: 'Failed to get products by name', error: err.message });
 	}
 });
 
-// GET /api/products/:id - find by id
-router.get('/:id', async (req, res) => {
+// GET /api/products/:productId - DO NOT USE THE COLON WHEN PLACING THE ID find by id
+router.get('/:productId', validId('productId'), isAuthenticated, async (req, res) => {
 	try {
-		const id = req.params.id;
-		if (!ObjectId.isValid(id)) return res.status(404).json({ message: 'Invalid productId' });
+		const id = req.params.productId;
 		const col = await getProductCollection();
 		const product = await col.findOne({ _id: new ObjectId(id) });
 		if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -108,19 +111,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/products - create
-router.post('/', async (req, res) => {
+router.post('/', hasRole('admin'), validate(productSchema), async (req, res) => {
 	try {
-		const { error, value } = productSchema.validate(req.body);
-		if (error) return res.status(400).json({ message: 'Validation failed', details: error.details });
-
 		const col = await getProductCollection();
 		const now = new Date();
 		const doc = {
-			name: value.name,
-			description: value.description || '',
-			category: value.category,
-			price: value.price,
-			createdOn: now,
+			name: req.body.name,
+			description: req.body.description || '',
+			category: req.body.category,
+			price: req.body.price,
+			createdAt: now,
 			lastUpdatedOn: now
 		};
 		const result = await col.insertOne(doc);
@@ -133,16 +133,12 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH /api/products/:productId - partial update
-router.patch('/:productId', async (req, res) => {
+router.patch('/:productId', hasRole('admin'), validId('productId'), validate(productPatchSchema), async (req, res) => {
 	try {
 		const productId = req.params.productId;
-		if (!ObjectId.isValid(productId)) return res.status(404).json({ message: 'Invalid productId' });
-
-		const { error, value } = productPatchSchema.validate(req.body);
-		if (error) return res.status(400).json({ message: 'Validation failed', details: error.details });
 
 		const col = await getProductCollection();
-		const updateDoc = { $set: { ...value, lastUpdatedOn: new Date() } };
+		const updateDoc = { $set: { ...req.body, lastUpdatedOn: new Date() } };
 		const result = await col.updateOne({ _id: new ObjectId(productId) }, updateDoc);
 		if (result.matchedCount === 0) return res.status(404).json({ message: 'Product not found' });
 		debugProduct(`Product updated: ${productId}`);
@@ -175,10 +171,9 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/products/:productId - delete
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', hasRole('admin'), validId('productId'), async (req, res) => {
 	try {
 		const productId = req.params.productId;
-		if (!ObjectId.isValid(productId)) return res.status(404).json({ message: 'Invalid productId' });
 
 		const col = await getProductCollection();
 		const result = await col.deleteOne({ _id: new ObjectId(productId) });
