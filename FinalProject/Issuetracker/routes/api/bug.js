@@ -217,7 +217,7 @@ router.get('/:bugId', isAuthenticated, requirePermission('canViewData'), async (
 // POST /api/bug/new - Create a new bug (canCreateBug required)
 router.post('/new', isAuthenticated, requirePermission('canCreateBug'), async (req, res) => {
   try {
-    debugBug('POST /api/bug/new called');
+    debugBug('POST /api/bugs/new called');
     
     // Validate request body with Joi
     const validateResult = createBugSchema.validate(req.body);

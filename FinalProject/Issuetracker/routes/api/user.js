@@ -52,6 +52,8 @@ const updateSchema = joi.object({
     joi.array().items(joi.string())
   ).optional()
 });
+
+
 router.patch('/me', isAuthenticated, async (req, res) => {
   try {
     debugUser('PATCH /api/users/me called');
@@ -109,6 +111,7 @@ router.patch('/me', isAuthenticated, async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 // GET /api/users/me - Return current user's profile (requires auth)
 router.get('/me', isAuthenticated, async (req, res) => {
   try {
@@ -136,9 +139,6 @@ router.get('/me', isAuthenticated, async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
-
 
 // GET /api/users - Return users with advanced search and pagination (canViewData required)
 router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
@@ -220,7 +220,6 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
   }
 });
 
-
 // GET /api/users/:userId - Return a specific user by ID
 router.get('/:userId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try{
@@ -259,15 +258,10 @@ router.post('/sign-up/email', (req, res) => {
 });
 
 
-
-
-
 // POST /api/users/sign-in/email - forward to Better Auth sign-in so cookie is set by auth
 router.post('/sign-in/email', (req, res) => {
   return res.redirect(307, '/api/auth/sign-in/email');
 });
-
-
 
 
 // POST /api/users/sign-out - forward to Better Auth sign-out to clear cookie
