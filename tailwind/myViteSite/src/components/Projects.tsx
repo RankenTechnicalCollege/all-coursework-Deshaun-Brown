@@ -7,7 +7,7 @@ interface Project {
   image: string;
 }
 
-function Projects() {
+export default function Projects() {
   const projects: Project[] = [
     {
       id: 1,
@@ -36,56 +36,59 @@ function Projects() {
   ];
 
   return (
-    <section id="projects" className="min-h-screen py-20 bg-white dark:bg-gray-900 transition-colors">
-      <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-4">
+    <section className="w-full min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 bg-gray-950">
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-7xl">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 text-center">
           Featured Projects
         </h2>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-16 max-w-2xl mx-auto">
-          Here are some of my recent works that showcase my skills and experience.
+        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16 max-w-2xl mx-auto">
+          Recent work that highlights my approach and stack.
         </p>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {projects.map((project) => (
-            <div
+            <article
               key={project.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-200 dark:border-gray-700"
+              className="group bg-gray-900/70 backdrop-blur rounded-lg sm:rounded-xl border border-gray-800 p-4 sm:p-5 md:p-6 flex flex-col transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1"
             >
-              <img
-                src={project.image}
-                alt={project.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  {project.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-sm rounded-full"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                <a
-                  href={project.link}
-                  className="inline-flex items-center text-purple-600 dark:text-purple-400 font-medium hover:underline"
-                >
-                  View Project →
-                </a>
+              <div className="overflow-hidden rounded-md mb-3 sm:mb-4">
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="h-32 sm:h-40 md:h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
               </div>
-            </div>
+              
+              <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-purple-400 transition-colors">
+                {project.title}
+              </h3>
+              
+              <p className="text-xs sm:text-sm md:text-base text-gray-400 mb-3 sm:mb-4 flex-1 line-clamp-3 sm:line-clamp-4">
+                {project.description}
+              </p>
+              
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                {project.tech.map((tech) => (
+                  <span
+                    key={tech}
+                    className="text-[10px] sm:text-xs md:text-sm px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-purple-600/20 text-purple-300 border border-purple-600/30 hover:bg-purple-600/30 hover:scale-105 transition-all duration-200"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+              
+              <a
+                href={project.link}
+                className="text-xs sm:text-sm md:text-base text-purple-400 font-medium hover:text-purple-300 inline-flex items-center gap-1 group-hover:gap-2 transition-all"
+              >
+                View Project 
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </a>
+            </article>
           ))}
         </div>
       </div>
     </section>
   );
 }
-
-export default Projects;

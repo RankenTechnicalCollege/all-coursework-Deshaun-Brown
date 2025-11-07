@@ -60,31 +60,30 @@ function Contact() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
   return (
-    <section id="contact" className="min-h-screen py-20 bg-white dark:bg-gray-900 transition-colors">
-      <div className="max-w-3xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-4">
+    <section className="w-full min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 bg-gray-950">
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-3xl">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-white mb-3 sm:mb-4 md:mb-6">
           Get In Touch
         </h2>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-16">
+        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
           Have a project in mind? Let's work together!
         </p>
         
         {isSubmitted && (
-          <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 rounded-lg">
+          <div className="mb-6 p-3 sm:p-4 bg-green-500/20 border border-green-500/50 text-green-300 rounded-lg text-sm sm:text-base">
             Thank you! Your message has been sent successfully.
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Name
             </label>
             <input
@@ -93,20 +92,20 @@ function Contact() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
                 errors.name 
-                  ? 'border-red-500 dark:border-red-500' 
-                  : 'border-gray-300 dark:border-gray-600'
-              } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 dark:focus:ring-purple-400 focus:border-transparent`}
+                  ? 'border-red-500' 
+                  : 'border-gray-700'
+              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300`}
               placeholder="Your name"
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.name}</p>
             )}
           </div>
           
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Email
             </label>
             <input
@@ -115,20 +114,20 @@ function Contact() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
                 errors.email 
-                  ? 'border-red-500 dark:border-red-500' 
-                  : 'border-gray-300 dark:border-gray-600'
-              } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 dark:focus:ring-purple-400 focus:border-transparent`}
+                  ? 'border-red-500' 
+                  : 'border-gray-700'
+              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300`}
               placeholder="your.email@example.com"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.email}</p>
             )}
           </div>
           
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Message
             </label>
             <textarea
@@ -137,21 +136,21 @@ function Contact() {
               value={formData.message}
               onChange={handleChange}
               rows={6}
-              className={`w-full px-4 py-3 rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
                 errors.message 
-                  ? 'border-red-500 dark:border-red-500' 
-                  : 'border-gray-300 dark:border-gray-600'
-              } bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 dark:focus:ring-purple-400 focus:border-transparent resize-none`}
+                  ? 'border-red-500' 
+                  : 'border-gray-700'
+              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all duration-300`}
               placeholder="Your message..."
             />
             {errors.message && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.message}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.message}</p>
             )}
           </div>
           
           <button
             type="submit"
-            className="w-full px-8 py-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors shadow-lg"
+            className="w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 hover:scale-105 transition-all duration-300 shadow-lg"
           >
             Send Message
           </button>
