@@ -21,12 +21,9 @@ export default function Navbar() {
     localStorage.setItem('theme', next ? 'dark' : 'light');
   };
 
-  const linkBase =
-    'px-3 py-2 text-sm font-medium transition-colors';
-  const active =
-    'text-purple-600 dark:text-purple-400';
-  const inactive =
-    'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400';
+  const linkBase = 'px-3 py-2 text-sm font-medium transition-colors';
+  const active = 'text-purple-600 dark:text-purple-400';
+  const inactive = 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400';
 
   return (
     <header className="sticky top-0 w-full z-50 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -42,6 +39,7 @@ export default function Navbar() {
             { to: '/projects', label: 'Projects' },
             { to: '/skills', label: 'Skills' },
             { to: '/contact', label: 'Contact' },
+            { to: '/typescript', label: 'TypeScript' },
           ].map(item => (
             <NavLink
               key={item.to}
@@ -65,20 +63,20 @@ export default function Navbar() {
 
         {/* Mobile buttons */}
         <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={toggleDark}
-              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? '🌙' : '☀️'}
-            </button>
-            <button
-              onClick={() => setOpen(o => !o)}
-              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              aria-label="Menu"
-            >
-              {open ? '✕' : '☰'}
-            </button>
+          <button
+            onClick={toggleDark}
+            className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? '🌙' : '☀️'}
+          </button>
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Menu"
+          >
+            {open ? '✕' : '☰'}
+          </button>
         </div>
       </div>
 
@@ -91,6 +89,7 @@ export default function Navbar() {
               { to: '/projects', label: 'Projects' },
               { to: '/skills', label: 'Skills' },
               { to: '/contact', label: 'Contact' },
+              { to: '/typescript', label: 'TypeScript' },
             ].map(item => (
               <NavLink
                 key={item.to}

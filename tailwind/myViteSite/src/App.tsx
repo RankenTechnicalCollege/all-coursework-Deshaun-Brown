@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import ProjectsPage from './pages/ProjectsPage';
 import SkillsPage from './pages/SkillsPage';
 import ContactPage from './pages/ContactPage';
+import TypescriptPage from './pages/TypescriptPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/skills" element={<SkillsPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<NotFoundPage />} />
+        <Route path="/typescript" element={<TypescriptPage/>} />
       </Routes>
     </>
   );
