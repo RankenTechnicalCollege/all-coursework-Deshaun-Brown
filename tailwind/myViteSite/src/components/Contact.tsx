@@ -66,45 +66,53 @@ function Contact() {
   };
 
   return (
-    <section className="w-full min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 bg-gray-950">
+<section className="w-full min-h-screen pt-8 pb-16 sm:pb-20 md:pb-24 bg-gray-950">      {/* Layout - Centered container with max-width */}
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-3xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-white mb-3 sm:mb-4 md:mb-6">
+        {/* Typography - Large heading + Animations */}
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-white mb-3 sm:mb-4 md:mb-6 animate-fade-in-down">
           Get In Touch
         </h2>
-        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
+        
+        {/* Typography - Centered description */}
+        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16 animate-fade-in delay-100">
           Have a project in mind? Let's work together!
         </p>
         
+        {/* Animations - Slide in success message + Colors - Green with opacity + Borders */}
         {isSubmitted && (
-          <div className="mb-6 p-3 sm:p-4 bg-green-500/20 border border-green-500/50 text-green-300 rounded-lg text-sm sm:text-base">
-            Thank you! Your message has been sent successfully.
+          <div className="mb-6 p-3 sm:p-4 bg-green-500/20 border-2 border-green-500/50 text-green-300 rounded-lg text-sm sm:text-base animate-slide-in-down">
+            ✓ Thank you! Your message has been sent successfully.
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div>
+        {/* Spaces & Sizes - Responsive form spacing */}
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 animate-fade-in delay-200">
+          <div className="transform transition-all duration-300 hover:translate-x-1">
+            {/* Typography - Label styling */}
             <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Name
             </label>
+            {/* Borders - Rounded input + Effects - Focus ring + Dark mode support */}
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border-2 ${
                 errors.name 
-                  ? 'border-red-500' 
-                  : 'border-gray-700'
-              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300`}
+                  ? 'border-red-500 animate-shake' 
+                  : 'border-gray-700 dark:border-gray-600'
+              } bg-gray-900 dark:bg-gray-800 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 focus:scale-[1.02]`}
               placeholder="Your name"
             />
+            {/* Typography - Error text styling + Animations */}
             {errors.name && (
-              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.name}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400 animate-fade-in">{errors.name}</p>
             )}
           </div>
           
-          <div>
+          <div className="transform transition-all duration-300 hover:translate-x-1">
             <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Email
             </label>
@@ -114,43 +122,45 @@ function Contact() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border-2 ${
                 errors.email 
-                  ? 'border-red-500' 
-                  : 'border-gray-700'
-              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300`}
+                  ? 'border-red-500 animate-shake' 
+                  : 'border-gray-700 dark:border-gray-600'
+              } bg-gray-900 dark:bg-gray-800 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 focus:scale-[1.02]`}
               placeholder="your.email@example.com"
             />
             {errors.email && (
-              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.email}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400 animate-fade-in">{errors.email}</p>
             )}
           </div>
           
-          <div>
+          <div className="transform transition-all duration-300 hover:translate-x-1">
             <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
               Message
             </label>
+            {/* Customization - Custom border radius using theme variable */}
             <textarea
               id="message"
               name="message"
               value={formData.message}
               onChange={handleChange}
               rows={6}
-              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border-2 ${
                 errors.message 
-                  ? 'border-red-500' 
-                  : 'border-gray-700'
-              } bg-gray-900 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all duration-300`}
+                  ? 'border-red-500 animate-shake' 
+                  : 'border-gray-700 dark:border-gray-600'
+              } bg-gray-900 dark:bg-gray-800 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all duration-300 focus:scale-[1.02]`}
               placeholder="Your message..."
             />
             {errors.message && (
-              <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.message}</p>
+              <p className="mt-1 text-xs sm:text-sm text-red-400 animate-fade-in">{errors.message}</p>
             )}
           </div>
           
+          {/* Effects - Shadow glow + Animations - Multiple hover effects */}
           <button
             type="submit"
-            className="w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 hover:scale-105 transition-all duration-300 shadow-lg"
+            className="w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-500 hover:scale-105 transition-all duration-300 shadow-glow hover:shadow-glow-lg transform active:scale-95"
           >
             Send Message
           </button>

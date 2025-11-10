@@ -1,11 +1,33 @@
 @import "tailwindcss";
 
 @theme {
+  /* Colors - Custom color palette */
   --color-mint-500: oklch(0.72 0.11 178);
+  --color-primary-600: oklch(0.52 0.25 270);
+  --color-primary-500: oklch(0.62 0.25 270);
+  --color-primary-400: oklch(0.72 0.20 270);
+  
+  /* Spaces & Sizes - Custom spacing */
+  --spacing-128: 32rem;
+  
+  /* Borders - Custom radius */
+  --radius-4xl: 2rem;
+  
+  /* Typography - Custom font size */
+  --font-size-2xs: 0.625rem;
+  
+  /* Effects - Custom shadows */
+  --shadow-glow: 0 0 20px oklch(0.62 0.25 270 / 0.5);
+  --shadow-glow-lg: 0 0 40px oklch(0.62 0.25 270 / 0.6);
+  
+  /* Animations - Custom animation timing */
+  --animate-bounce-slow: bounce 2s infinite;
 }
 
 * {
-  
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
@@ -32,7 +54,7 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Custom animations */
+/* Animations - Custom keyframes */
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -120,4 +142,13 @@ code {
 .delay-0 {
   animation-delay: 0s;
   opacity: 0;
+}
+
+/* Effects & Filters - Custom shadow utilities */
+.shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.shadow-glow-lg {
+  box-shadow: var(--shadow-glow-lg);
 }

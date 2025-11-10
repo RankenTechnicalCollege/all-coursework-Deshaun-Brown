@@ -15,8 +15,7 @@ function Skills() {
   ];
 
   return (
-    <section className="w-full min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 bg-gray-900">
-      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-7xl">
+<section className="w-full min-h-screen pt-8 pb-16 sm:pb-20 md:pb-24 lg:pb-28 bg-gray-900">      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-7xl">
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-white mb-3 sm:mb-4 md:mb-6">
           Skills & Expertise
         </h2>

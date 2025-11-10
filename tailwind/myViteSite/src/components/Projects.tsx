@@ -36,21 +36,27 @@ export default function Projects() {
   ];
 
   return (
-    <section className="w-full min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24 lg:pb-28 bg-gray-950">
+// Remove the pt-24 sm:pt-28 md:pt-32 from the section
+<section className="w-full min-h-screen pt-8 pb-16 sm:pb-20 md:pb-24 lg:pb-28 bg-gray-950">
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 mx-auto max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 text-center">
+        {/* Typography - Responsive heading with animations */}
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 text-center animate-fade-in-down">
           Featured Projects
         </h2>
-        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16 max-w-2xl mx-auto">
+        
+        {/* Typography - Subtitle with spacing */}
+        <p className="text-center text-sm sm:text-base md:text-lg text-gray-400 mb-8 sm:mb-10 md:mb-12 lg:mb-16 max-w-2xl mx-auto animate-fade-in delay-100">
           Recent work that highlights my approach and stack.
         </p>
         
+        {/* Grid - Responsive grid layout (1→2→3 columns) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-          {projects.map((project) => (
+          {projects.map((project, index) => (
             <article
               key={project.id}
-              className="group bg-gray-900/70 backdrop-blur rounded-lg sm:rounded-xl border border-gray-800 p-4 sm:p-5 md:p-6 flex flex-col transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1"
+              className={`group bg-gray-900/70 backdrop-blur rounded-lg sm:rounded-xl border border-gray-800 p-4 sm:p-5 md:p-6 flex flex-col transition-all duration-300 hover:border-purple-500/50 hover:shadow-glow-lg hover:-translate-y-1 animate-fade-in-up delay-${index * 100}`}
             >
+              {/* Effects & Filters - Backdrop blur on card + Image zoom animation */}
               <div className="overflow-hidden rounded-md mb-3 sm:mb-4">
                 <img
                   src={project.image}
@@ -59,14 +65,17 @@ export default function Projects() {
                 />
               </div>
               
+              {/* Typography - Heading with hover color change */}
               <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-purple-400 transition-colors">
                 {project.title}
               </h3>
               
+              {/* Typography - Line clamp for description */}
               <p className="text-xs sm:text-sm md:text-base text-gray-400 mb-3 sm:mb-4 flex-1 line-clamp-3 sm:line-clamp-4">
                 {project.description}
               </p>
               
+              {/* Flex - Wrapped tech badges + Colors - Custom opacity + Borders - Rounded pills */}
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                 {project.tech.map((tech) => (
                   <span
@@ -78,6 +87,7 @@ export default function Projects() {
                 ))}
               </div>
               
+              {/* Animations - Arrow slides on hover */}
               <a
                 href={project.link}
                 className="text-xs sm:text-sm md:text-base text-purple-400 font-medium hover:text-purple-300 inline-flex items-center gap-1 group-hover:gap-2 transition-all"

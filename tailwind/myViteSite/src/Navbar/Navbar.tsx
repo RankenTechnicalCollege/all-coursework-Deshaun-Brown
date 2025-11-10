@@ -29,8 +29,8 @@ export default function Navbar() {
     'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400';
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 border-b border-white/10 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 backdrop-blur">
-      <div className="container-fluid flex items-center justify-between h-16">
+    <header className="sticky top-0 w-full z-50 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         <Link to="/" className="font-bold text-lg text-purple-600 dark:text-purple-400">
           Portfolio
         </Link>
@@ -47,7 +47,7 @@ export default function Navbar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `${linkBase} ${isActive ? active : inactive}`
+                `${linkBase} rounded-md ${isActive ? active : inactive}`
               }
             >
               {item.label}
@@ -56,7 +56,7 @@ export default function Navbar() {
 
           <button
             onClick={toggleDark}
-            className="ml-2 rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="ml-2 rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             aria-label="Toggle dark mode"
           >
             {isDark ? '🌙' : '☀️'}
@@ -67,14 +67,14 @@ export default function Navbar() {
         <div className="flex md:hidden items-center gap-2">
             <button
               onClick={toggleDark}
-              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               aria-label="Toggle dark mode"
             >
               {isDark ? '🌙' : '☀️'}
             </button>
             <button
               onClick={() => setOpen(o => !o)}
-              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+              className="rounded-lg p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               aria-label="Menu"
             >
               {open ? '✕' : '☰'}
@@ -84,8 +84,8 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-white/10 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur">
-          <nav className="flex flex-col px-4 py-3 gap-1">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col py-3 gap-1">
             {[
               { to: '/', label: 'Home' },
               { to: '/projects', label: 'Projects' },
@@ -97,7 +97,7 @@ export default function Navbar() {
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `${linkBase} rounded ${isActive ? active : inactive}`
+                  `${linkBase} rounded-md ${isActive ? active : inactive}`
                 }
               >
                 {item.label}
