@@ -133,9 +133,307 @@ export default function Typescript() {
 
       {/* Content Sections */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-12">
-        {/* 1. INTERFACES */}
         <section id="interfaces" className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4">1. Interfaces</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Numbers</h2>
+          <p className="text-gray-400 mb-6">
+            Define Numbers in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`let userId: number = 334455.3
+userId.toFixed()`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Functions</h2>
+          <p className="text-gray-400 mb-6">
+            Better Functions in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`function addTwo(num: number){
+  return num + 2 }
+
+  function getUpper(val: string) {
+  return val.toUpperCase();
+}
+  
+
+addTwo(5);
+getUpper("hello")
+
+export {}
+
+const getHello = (s: string):string => {
+return ""
+}
+
+const heros = ["thor", "spiderman", "ironman"]
+
+heros.map((hero: string) => {
+  return hero.toUpperCase()})`
+}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Objects</h2>
+          <p className="text-gray-400 mb-6">
+            Define Objects in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{` const User = {
+name: "hitesh",
+email:"hitesh@lco.dev",
+isActive: true}`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Arrays</h2>
+          <p className="text-gray-400 mb-6">
+            Define Arrays in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`const heros: string[] = []
+const heroPower: Array<number> = []
+
+type User = {
+name: string 
+isActive: boolean } 
+
+const allUsers: User[] = [] 
+superHeros.push("spiderman")
+heroPower.push(2)
+allUsers.push ({name: "", isActive: true})`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Union Types</h2>
+          <p className="text-gray-400 mb-6">
+            Define Union Types in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`let score: number | string = 33
+
+type User = { name: string;
+is: number }
+
+let hitesh: User | User | Admin = { name: "hitesh", id: 334} 
+
+hitesh = {username: "hc", id: 334}]
+
+}
+
+`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Tuples</h2>
+          <p className="text-gray-400 mb-6">
+            Define Tuples in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`const tUser: [string, number, boolean]
+9 
+tUser = ["hitesh", 334, true] 
+//if the order is changed it will throw an error`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Enums</h2>
+          <p className="text-gray-400 mb-6">
+            Define Enums in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`Enums are for restricting a variable to have one of a set of predefined constants. 
+
+enum UserRole {
+  Admin,
+  User,
+  Guest
+}
+
+let role: UserRole = UserRole.Admin
+role = UserRole.User
+`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">READONLY and Optionals</h2>
+          <p className="text-gray-400 mb-6">
+            Define READONLY and Optional properties in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`type User = {
+  readonly id: number
+  name: string
+  email?: string
+}
+
+const user: User = {
+  id: 1,
+  name: "John Doe"
+}
+user.id = 2 // Error: Cannot assign to 'id' because it is a read-only property
+`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Classes</h2>
+          <p className="text-gray-400 mb-6">
+            Define Classes in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`class User {
+email: string
+name: string
+city: string = ""
+  constructor(email: string, name: string) {
+    this.email = email
+    this.name = name
+    }
+
+}`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Public and Private</h2>
+          <p className="text-gray-400 mb-6">
+            Define Public and Private modifiers in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`class User {
+  private id: number
+  public email: string
+  public name: string
+  public city: string = ""
+
+  constructor(email: string, name: string) {
+    this.email = email
+    this.name = name
+  }
+
+constructor(public email: string, public name: string) {
+    
+  }
+
+}`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Getters and Setters</h2>
+          <p className="text-gray-400 mb-6">
+            Define Getters and Setters in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`class User {
+  private _email: string
+  private _name: string
+
+  constructor(email: string, name: string) {
+    this._email = email
+    this._name = name
+  }
+
+  get email(): string {
+    return this._email
+  }
+
+  set email(email: string) {
+    this._email = email
+  }
+
+  get name(): string {
+    return this._name
+  }
+
+  set name(name: string) {
+    this._name = name
+  }
+}`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Protected</h2>
+          <p className="text-gray-400 mb-6">
+            Define Protected properties in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`class User {
+  protected id: number
+  public email: string
+  public name: string
+  public city: string = ""
+
+  constructor(email: string, name: string) {
+    this.email = email
+    this.name = name
+  }
+
+  getId(): number {
+    return this.id
+  }
+}`} 
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Abstract Classes</h2>
+          <p className="text-gray-400 mb-6">
+            Define Abstract Classes in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`abstract class User {
+  constructor(public email: string, public name: string) {}
+  abstract getDetails(): string;
+}
+
+class AdminUser extends User {
+  getDetails(): string {
+    return \`Admin: \${this.name} <\${this.email}>\`;
+  }
+}
+
+class RegularUser extends User {
+  getDetails(): string {
+    return \`User: \${this.name} <\${this.email}>\`;
+  }
+}`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Generics in Classes</h2>
+          <p className="text-gray-400 mb-6">
+            Define Generics in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`class User<T> {
+  constructor(public email: string, public name: string, public id: T) {}
+}
+
+const user1 = new User<string>('john@example.com', 'John Doe', '123');
+const user2 = new User<number>('jane@example.com', 'Jane Doe', 456);
+`}
+              </pre>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Type Narrowing</h2>
+          <p className="text-gray-400 mb-6">
+            Define Type Narrowing in Typescript</p>
+            <div className="bg-gray-950 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2">Code Example:</h3>
+              <pre className="text-sm text-gray-300 overflow-x-auto">
+{`function detectType(val: number | string) { }
+  if (typeof val === "string") {
+    console.log("String detected:", val);
+  } else {
+    console.log("Number detected:", val);
+  }
+}`
+}
+              </pre>
+            </div>
+          </section>
+
+        {/* INTERFACES */}
+        <section id="interfaces" className="bg-gray-900 rounded-lg p-6">
+          <h2 className="text-3xl font-bold text-white mb-4">Interfaces</h2>
           <p className="text-gray-400 mb-6">
             Define the shape of objects with optional and required properties
           </p>
@@ -178,7 +476,7 @@ export default function Typescript() {
           </div>
         </section>
 
-        {/* 2. TYPE ALIASES */}
+        {/* TYPE ALIASES */}
         <section id="types" className="bg-gray-900 rounded-lg p-6">
           <h2 className="text-3xl font-bold text-white mb-4">2. Type Aliases</h2>
           <p className="text-gray-400 mb-6">
@@ -224,9 +522,9 @@ type Status = 'pending' | 'approved' | 'rejected';`}
           </div>
         </section>
 
-        {/* 4. GENERICS */}
+        {/* GENERICS */}
         <section id="generics" className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4">3. Generics</h2>
+          <h2 className="text-3xl font-bold text-white mb-4"> Generics</h2>
           <p className="text-gray-400 mb-6">
             Create reusable components that work with any type
           </p>
@@ -273,9 +571,9 @@ function getFirstElement<T>(arr: T[]): T | undefined {
           </div>
         </section>
 
-        {/* 5. UTILITY TYPES */}
+        {/* UTILITY TYPES */}
         <section id="utilities" className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4">4. Utility Types</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Utility Types</h2>
           <p className="text-gray-400 mb-6">
             Built-in TypeScript utilities for type transformations
           </p>
@@ -331,9 +629,9 @@ function getFirstElement<T>(arr: T[]): T | undefined {
           </div>
         </section>
 
-        {/* 7. ASYNC/AWAIT */}
+        {/* ASYNC/AWAIT */}
         <section id="async" className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4">5. Async/Await & Promises</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Async/Await & Promises</h2>
           <p className="text-gray-400 mb-6">
             Handle asynchronous operations with type safety
           </p>
@@ -378,9 +676,9 @@ function getFirstElement<T>(arr: T[]): T | undefined {
           </div>
         </section>
 
-        {/* 8. TYPE GUARDS */}
+        {/* TYPE GUARDS */}
         <section id="guards" className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-3xl font-bold text-white mb-4">6. Type Guards</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Type Guards</h2>
           <p className="text-gray-400 mb-6">
             Runtime type checking with TypeScript type narrowing
           </p>
