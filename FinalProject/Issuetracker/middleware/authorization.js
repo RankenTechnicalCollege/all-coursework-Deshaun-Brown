@@ -2,8 +2,11 @@
 // Authorization middleware functions based on lecture notes pages 15-22
 import { getRoleCodes, getEffectivePermissions } from './roles.js';
 
+// ...existing code...
+
 /**
  * isLoggedIn - Check that the user is logged in, nothing more
+ * Also exported as isAuthenticated for compatibility
  */
 export function isLoggedIn() {
   return (req, res, next) => {
@@ -14,6 +17,11 @@ export function isLoggedIn() {
     }
   };
 }
+
+// Alias for compatibility
+export const isAuthenticated = isLoggedIn;
+
+// ...existing code...
 
 /**
  * hasAnyRole - Check that the user is logged in and has at least one role
