@@ -1,20 +1,39 @@
 import { useState } from "react";
 import { BugList } from "@/components/BugList";
+import { BugEditor } from "@/components/BugEditor";
 import type { Bug } from "@/types/bug";
 
 export function BugsPage() {
-  const [selectedBug, setSelectedBug] = useState<Bug | undefined>();
+  const [editingBug, setEditingBug] = useState<Bug | undefined>();
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const handleOpenEditor = (bug?: Bug) => {
-    setSelectedBug(bug);
-    console.log("Opening editor for:", bug ? bug.title : "new bug");
-    // TODO: Open BugEditor component (we'll create this next)
+    setEditingBug(bug);
+    setEditorOpen(true);
+  };
+
+  const handleCancel = () => {
+    setEditorOpen(false);
+    setEditingBug(undefined);
+  };
+
+  const handleSave = (data: Partial<Bug>) => {
+    console.log("Saved bug (simulate persist):", data);
+    handleCancel();
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <BugList onOpenEditor={handleOpenEditor} />
-      {/* BugEditor will go here later */}
+      {editorOpen && (
+        <BugEditor
+          bug={editingBug}
+          onSave={handleSave}
+          onCancel={handleCancel}
+        />
+      )}
     </div>
   );
 }
+
+export default BugsPage;

@@ -4,8 +4,8 @@ export interface Bug {
   description: string;
   status: "open" | "in-progress" | "closed";
   priority: "low" | "medium" | "high" | "critical";
-  assignedTo?: string;
   createdBy: string;
+  assignedTo?: string;
   createdAt: string;
   updatedAt: string;
 }
