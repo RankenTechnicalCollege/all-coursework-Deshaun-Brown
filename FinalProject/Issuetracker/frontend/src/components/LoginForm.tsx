@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { toast } from "react-toastify";
+
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -20,7 +22,7 @@ export function LoginForm() {
 
     // Simulate successful login
     console.log("Login successful:", { email, password });
-    alert(`Logged in as: ${email}`);
+    toast.success(`Logged in as: ${email}`);
     
     // Clear form
     setEmail("");

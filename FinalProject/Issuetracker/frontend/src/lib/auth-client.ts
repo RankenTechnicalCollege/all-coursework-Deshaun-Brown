@@ -1,9 +1,14 @@
 import { createAuthClient } from "better-auth/react";
 
-// Extend the auth client with custom fields
 export const authClient = createAuthClient({
-    baseURL: import.meta.env.VITE_API_URL 
-        ? `${import.meta.env.VITE_API_URL}/auth` 
-        : "http://localhost:8080/api/auth",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080"
 });
+
+export const { 
+  signIn, 
+  signUp, 
+  signOut, 
+  useSession,
+  getSession 
+} = authClient;
 
