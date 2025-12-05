@@ -1,9 +1,4 @@
-export type UserRole =
-  | "developer"
-  | "qa"
-  | "business analyst"
-  | "product manager"
-  | "technical manager";
+export type UserRole = "DEV" | "QA" | "BA" | "PM" | "TM";
 
 export interface User {
   _id: string;
@@ -11,4 +6,6 @@ export interface User {
   email: string;
   role: UserRole;
   createdAt: string;
+  updatedAt?: string;
+  password?: string;
 }

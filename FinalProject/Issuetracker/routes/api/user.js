@@ -28,12 +28,7 @@ router.use(express.urlencoded({extended:false}));
 const registerSchema = joi.object({
   email: joi.string().email().required(),
   password: joi.string().min(6).required(),
-  givenName: joi.string().min(1).required(),
-  familyName: joi.string().min(1).required(),
-  role: joi.alternatives().try(
-    joi.string(),
-    joi.array().items(joi.string())
-  ).required()
+  name: joi.string().required()
 });
 
 const loginSchema = joi.object({
@@ -252,15 +247,54 @@ router.get('/:userId', isAuthenticated, requirePermission('canViewData'), async 
 });
 
 // POST /api/users/sign-up/email - alias wrapper to Better Auth sign-up (preserves cookies)
-router.post('/sign-up/email', (req, res) => {
-  // Forward to Better Auth endpoint with method/body intact
-  return res.redirect(307, '/api/auth/sign-up/email');
+router.post('/sign-up/email', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+
+    // Validate input
+    const { error, value } = registerSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // Hash password with bcrypt
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user with hashed password
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      name
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: "User created successfully", user: newUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
-// POST /api/users/sign-in/email - forward to Better Auth sign-in so cookie is set by auth
-router.post('/sign-in/email', (req, res) => {
-  return res.redirect(307, '/api/auth/sign-in/email');
+// POST /api/users/sign-in/email - Validate and forward to Better Auth
+router.post('/sign-in/email', async (req, res) => {
+  try {
+    const { error, value } = loginSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Forward to Better Auth for actual authentication
+    return res.redirect(307, '/api/auth/sign-in/email');
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 

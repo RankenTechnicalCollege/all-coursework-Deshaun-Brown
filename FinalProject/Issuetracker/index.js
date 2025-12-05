@@ -1,6 +1,8 @@
 import express from 'express';
 import debug from 'debug';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './auth.js';
 import { isAuthenticated } from './middleware/isAuthenticated.js';
@@ -8,6 +10,9 @@ import { UserRouter } from './routes/api/user.js';
 import { BugRouter } from './routes/api/bug.js';
 import { CommentRouter } from './routes/api/comment.js';
 import { TestRouter } from './routes/api/test.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const debugServer = debug('app:Server');
 
@@ -36,7 +41,14 @@ app.use(cors({
     credentials: true,
 }));
 
-app.use(express.static('frontend/dist'));
+// Serve static files from frontend/dist (production build)
+app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
+
+
+app.get('/api/get-session', (req, res) => {
+  // return session data or placeholder
+  res.json(307, '/api/auth/session');
+});
 
 // Help Postman by defaulting Origin in dev (Better Auth requires Origin)
 app.use('/api/auth', (req, _res, next) => {
@@ -68,15 +80,15 @@ app.use('/api/bugs/:bugId/testCases', isAuthenticated, TestRouter);
 // Lab expects /tests path; mount alias
 app.use('/api/bugs/:bugId/tests', isAuthenticated, TestRouter);
 
-
-const port = process.env.PORT || 8080;
-
-app.listen(port,() => {
-    debugServer(`Server is running on port http://localhost:${port}`);
+// 404 handler for API routes (must come BEFORE catch-all)
+app.use('/api/*path', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
 });
 
-app.get('/', (req, res) => {
-    res.send('Hello, world!');
+// Serve frontend for all non-API routes (SPA routing)
+app.get('*path', (req, res) => {
+    // Serve index.html for all SPA routes
+    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
 });
 
 // Global error handler (Express 5) - logs stack traces to terminal
@@ -84,6 +96,14 @@ app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     if (res.headersSent) return next(err);
     res.status(err.status || 500).json({ error: 'Internal server error' });
+});
+
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => {
+    debugServer(`Server is running on port http://localhost:${port}`);
+    console.log(`🚀 Frontend available at http://localhost:${port}`);
+    console.log(`🔧 API available at http://localhost:${port}/api`);
 });
 
 // Process-level safety nets

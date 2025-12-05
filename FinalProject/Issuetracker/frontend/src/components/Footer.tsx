@@ -11,11 +11,16 @@ export function Footer() {
           <div>
             <Link to="/dashboard" className="flex items-center gap-2 mb-4">
               <span className="text-2xl">🐛</span>
-              <span className="font-bold text-lg">Issue Tracker</span>
+              <p className="text-sm text-muted-foreground">
+          IssueTracker © {currentYear}
+        </p>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               A comprehensive bug tracking system for managing software defects during the development lifecycle.
             </p>
+            <p className="text-xs text-muted-foreground mt-2">
+          Developed by Deshaun Brown
+        </p>
           </div>
 
           {/* Product Links */}

@@ -7,19 +7,24 @@ import 'react-toastify/dist/ReactToastify.css'
 import '@/index.css'
 import App from './App'
 
+const rootElement = document.getElementById('root');
 
-createRoot(document.getElementById('root')).render(
+if (!rootElement) {
+  throw new Error('Failed to find the root element');
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
-    <AuthProvider>
-      <App />
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-      />
+      <AuthProvider>
+        <App />
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+        />
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -32,7 +32,7 @@ export function UserEditorPage() {
         _id: userId,
         fullName: "DeSean Brown",
         email: "desean@example.com",
-        role: "technical manager",
+        role: "TM",
         createdAt: new Date().toISOString()
       };
 
@@ -102,7 +102,7 @@ export function UserEditorPage() {
       </div>
 
       <UserEditor 
-        user={user}
+        userId={user?._id}
         onSave={handleSave}
         onCancel={handleCancel}
       />

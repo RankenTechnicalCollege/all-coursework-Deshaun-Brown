@@ -106,7 +106,7 @@ export function BugEditorPage() {
       </div>
 
       <BugEditor 
-        bug={bug}
+        bugId={bug?._id}
         onSave={handleSave}
         onCancel={handleCancel}
       />
