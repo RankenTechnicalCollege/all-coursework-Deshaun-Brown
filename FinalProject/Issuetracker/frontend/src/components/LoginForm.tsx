@@ -59,7 +59,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-      const res =await fetch(`${base}/api/auth/sign-in/email`, {
+      const res =await fetch(`${base}/auth/sign-in/email`, {
         method: "POST",
         headers: {"Content-Type" : "application/json"},
         credentials: "include",

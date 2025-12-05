@@ -154,7 +154,7 @@ export function RegisterForm() {
             {/* Full Name field */}
             <div className="space-y-2">
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                Full Name
+                Full Name <span className="text-red-600">*</span>
               </label>
               <input
                 id="fullName"
@@ -176,7 +176,7 @@ export function RegisterForm() {
             {/* Email field */}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email Address
+                Email Address <span className="text-red-600">*</span>
               </label>
               <input
                 id="email"
@@ -198,7 +198,7 @@ export function RegisterForm() {
             {/* Password field */}
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                Password <span className="text-red-600">*</span>
               </label>
               <input
                 id="password"
@@ -223,7 +223,7 @@ export function RegisterForm() {
             {/* Confirm Password field */}
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
+                Confirm Password <span className="text-red-600">*</span>
               </label>
               <input
                 id="confirmPassword"
@@ -256,7 +256,7 @@ export function RegisterForm() {
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
                   errors.role ? "border-red-500" : "border-gray-300"
                 }`}
-                required
+              //Removed: required
               >
                 <option value="">Select a role</option>
                 <option value="DEV">Developer</option>

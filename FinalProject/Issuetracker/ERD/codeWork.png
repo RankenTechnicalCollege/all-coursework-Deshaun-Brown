@@ -1,0 +1,19 @@
+import {createContext, ReactNode, createElement} from "react";
+import { useState } from "react";
+
+import Dashboard from "@/components/Dashboard";
+
+
+export const DashboardContext = createContext<string | null>(null);
+
+export default function Waltz(){
+    const [user] = useState('Daren');
+
+    return (
+    <div className="tutorial-shorts">
+    <DashboardContext.Provider value={user}>
+    <Dashboard />
+    </DashboardContext.Provider>
+    </div>
+    );
+}
