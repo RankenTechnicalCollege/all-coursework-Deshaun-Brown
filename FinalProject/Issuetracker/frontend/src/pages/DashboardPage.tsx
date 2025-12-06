@@ -1,5 +1,5 @@
+import { Link } from "react-router-dom";
 import { Card, CardHeader, CardContent } from "../components/ui/card";
-
 
 export function DashboardPage() {
   const users = ["DeSean Brown", "Paul Smith", "Mickey Mouse", "Donald Duck"];
@@ -32,7 +32,9 @@ export function DashboardPage() {
           <ul className="divide-y">
             {bugs.map((bug, idx) => (
               <li key={idx} className="px-6 py-3">
-                <a href="#" className="text-primary hover:underline">{bug}</a>
+                <Link to="/bugs" className="text-primary hover:underline">
+                  {bug}
+                </Link>
               </li>
             ))}
           </ul>

@@ -139,6 +139,9 @@ export function RegisterForm() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50 py-8">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
+          <Link to="/dashboard" className="flex items-center justify-center bg-gray-50">
+          <span className="text-lg font-semibold">IssueTracker</span>
+          </Link>
           <CardTitle>Create Account</CardTitle>
           <CardDescription>Register to start tracking bugs and issues</CardDescription>
         </CardHeader>
@@ -273,7 +276,7 @@ export function RegisterForm() {
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-black text-white hover:bg-gray-600" 
               disabled={isLoading}
             >
               {isLoading ? "Creating account..." : "Register"}

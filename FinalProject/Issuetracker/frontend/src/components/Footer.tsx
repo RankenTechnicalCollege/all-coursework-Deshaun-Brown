@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Brand Section */}
           <div>
-            <Link to="/dashboard" className="flex items-center gap-2 mb-4">
+            <Link to="/dashboard" className="flex items-center justify-center gap-3 mb-4">
               <span className="text-2xl">🐛</span>
               <p className="text-sm text-muted-foreground">
           IssueTracker © {currentYear}
