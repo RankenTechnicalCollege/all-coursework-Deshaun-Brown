@@ -8,6 +8,8 @@
       "path": "./tsconfig.node.json"
     }
   ],
+
+  "extends":"../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
     "noUnusedLocals": false,
