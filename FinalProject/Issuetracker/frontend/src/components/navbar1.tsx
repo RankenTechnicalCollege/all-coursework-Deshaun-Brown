@@ -111,7 +111,7 @@ const Navbar1 = () => {
           {user ? (
             <>
               <span className="text-sm text-gray-200">
-                Welcome, {user.name ?? user.email}
+                Welcome, {user.fullName ?? user.email}
               </span>
               <Button
                 variant="outline"

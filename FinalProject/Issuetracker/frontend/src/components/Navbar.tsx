@@ -42,16 +42,14 @@ const contextualLinks: Record<string, NavItem[]> = {
 };
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const userRole = user?.role as RoleCode | undefined;
 
-  // Filter navigation items based on user role and auth status
   const visibleNavItems = user
     ? navItems.filter((item) => userRole && item.roles.includes(userRole))
     : navItems.filter((item) => !item.requiresAuth);
 
-  // Get contextual links for current page
   const currentContextualLinks = user
     ? (contextualLinks[location.pathname] || []).filter(
         (item) => userRole && item.roles.includes(userRole)
@@ -59,23 +57,28 @@ export function Navbar() {
     : [];
 
   const handleLogout = async () => {
-    // Add logout logic
+    await signOut();
     window.location.href = "/login";
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#222] bg-[#0f0f0f] text-white">
+    <header className="sticky top-0 z-40 border-b border-[#ff0000] bg-[#0f0f0f] text-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Brand */}
         <Link
           to={user ? "/dashboard" : "/"}
-          className="flex items-center gap-2 text-white hover:text-gray-100 no-underline"
+          className="flex items-center gap-4 text-white hover:text-gray-100 no-underline"
         >
+          <img
+            src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg"
+            alt="Logo"
+            className="h-7 w-7 bg-gray-200"
+          />
           <span className="text-lg font-semibold">IssueTracker</span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+        <nav className="items-center gap-6 text-sm font-medium md:flex">
           {visibleNavItems.map((link) => (
             <NavLink
               key={link.to}
@@ -117,7 +120,7 @@ export function Navbar() {
           {user ? (
             <>
               <span className="text-sm text-gray-200">
-                {user.name ?? user.email} ({userRole})
+                {user.fullName ?? user.email} ({userRole})
               </span>
               <Button
                 variant="outline"
@@ -216,11 +219,11 @@ export function Navbar() {
                     <Button
                       asChild
                       variant="outline"
-                      className="flex-1 border-gray-300 text-white hover:bg-white/10"
+                      className="flex-1 text-black hover:bg-gray-700/10"
                     >
                       <Link to="/login">Login</Link>
                     </Button>
-                    <Button asChild className="flex-1 bg-gray-200 text-black hover:bg-gray-100">
+                    <Button asChild className="flex-1 text-black">
                       <Link to="/register">Sign up</Link>
                     </Button>
                   </>

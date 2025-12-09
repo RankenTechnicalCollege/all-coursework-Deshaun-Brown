@@ -21,27 +21,17 @@ export function BugEditorPage() {
     
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${import.meta.env.VITE_API_URL}/api/bugs/${bugId}`);
-      // if (!response.ok) throw new Error('Failed to fetch bug');
-      // const data = await response.json();
-      // setBug(data);
-
-      // Mock: simulate fetching bug
-      const mockBug: Bug = {
-        _id: bugId,
-        title: "It's broken, please fix.",
-        description: "Critical functionality is broken and needs immediate attention",
-        priority: "critical",
-        status: "open",
-        createdBy: "DeSean Brown",
-        assignedTo: "Paul Smith",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setBug(mockBug);
+      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+      const response = await fetch(`${base}/bugs/${bugId}`, { 
+        credentials: 'include' 
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bug (${response.status})`);
+      }
+      
+      const data = await response.json();
+      setBug(data);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to fetch bug";
       showError(errorMsg);
@@ -53,25 +43,30 @@ export function BugEditorPage() {
 
   const handleSave = async (data: Partial<Bug>) => {
     try {
-      // TODO: Call API to save bug
-      // const endpoint = bug?._id 
-      //   ? `${import.meta.env.VITE_API_URL}/api/bugs/${bug._id}`
-      //   : `${import.meta.env.VITE_API_URL}/api/bugs`;
-      // const method = bug?._id ? 'PUT' : 'POST';
-      // const response = await fetch(endpoint, {
-      //   method,
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      // if (!response.ok) throw new Error('Failed to save bug');
-      // const savedBug = await response.json();
+      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+      const endpoint = bug?._id 
+        ? `${base}/bugs/${bug._id}`
+        : `${base}/bugs`;
+      const method = bug?._id ? 'PUT' : 'POST';
+      
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to save bug (${response.status})`);
+      }
+      
+      await response.json();
 
       const message = bug?._id ? "Bug updated successfully!" : "Bug created successfully!";
       showSuccess(message);
-      console.log("Bug saved:", data);
       
       setTimeout(() => {
-        navigate("/bug/list");
+        navigate("/bugs");
       }, 1500);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to save bug";
@@ -81,7 +76,7 @@ export function BugEditorPage() {
   };
 
   const handleCancel = () => {
-    navigate("/bug/list");
+    navigate("/bugs");
   };
 
   // Loading state
@@ -106,9 +101,9 @@ export function BugEditorPage() {
       </div>
 
       <BugEditor 
-        bugId={bug?._id}
-        onSave={handleSave}
+        bug={bug}
         onCancel={handleCancel}
+        onSave={handleSave}
       />
     </div>
   );

@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { getClient, getDatabase } from "./database.js";
+import debug from "debug";
 
+const debugAuth = debug('app:Auth');
 const client = await getClient();
 const db = await getDatabase();
 
@@ -28,18 +30,20 @@ export const auth = betterAuth({
    user: {
         additionalFields: {
             role: {
-                type: "object",
+                type: "string",
                 required: true,
             },
-            profile: {
-                type: "object",
-                required: true,
-                defaultValue: {}
-               
-            }
         },
   },
-},
-});
+  hooks: {
+    // Hook called after user is created
+    async afterUserCreate({ user }) {
+      debugAuth('afterUserCreate hook called for user:', user.email);
+      // The role should be passed in the request body and Better Auth will handle it
+      // But we can also update the user document here if needed
+      return user;
+    },
+  },
+}});
 
 export default auth;

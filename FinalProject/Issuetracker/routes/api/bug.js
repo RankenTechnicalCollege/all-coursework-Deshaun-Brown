@@ -50,8 +50,8 @@ const closeSchema = joi.object({
   closed: joi.boolean().required()
 });
 
-// GET /api/bugs/list - Return bugs with advanced search and pagination (canViewData required)
-router.get('/bugs', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
+// GET /api/bugs - Return bugs with advanced search and pagination (canViewData required)
+router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     debugBug('GET /api/bugs called');
     const { 
@@ -169,21 +169,6 @@ router.get('/bugs', isAuthenticated, requirePermission('canViewData'), async (re
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// GET /api/bugs - Return all bugs (canViewData required)
-router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
-  try {
-    debugBug('GET /api/bugs called');
-    const db = await connect();
-    const bugs = await db.collection('bugs').find({}).toArray();
-    debugBug(`Found ${bugs.length} bugs`);
-    res.json(bugs);
-  } catch (error) {
-    debugBug('Error fetching bugs:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 
 // GET /api/bugs/:bugId - Return a specific bug by ID (canViewData required)
 router.get('/:bugId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {

@@ -28,7 +28,8 @@ router.use(express.urlencoded({extended:false}));
 const registerSchema = joi.object({
   email: joi.string().email().required(),
   password: joi.string().min(6).required(),
-  name: joi.string().required()
+  name: joi.string().required(),
+  role: joi.string().required()
 });
 
 const loginSchema = joi.object({
@@ -246,41 +247,106 @@ router.get('/:userId', isAuthenticated, requirePermission('canViewData'), async 
   }
 });
 
-// POST /api/users/sign-up/email - alias wrapper to Better Auth sign-up (preserves cookies)
+// POST /api/users/sign-up/email - Create new user with hashed password
+// Helper to update user role after signup
+async function updateUserRoleAfterSignup(email, role, fullName) {
+  try {
+    const db = await connect();
+    const userRole = role || 'DEV'|| 'TM'|| 'QA'|| 'BA'||'PA';
+    
+    debugUser(`Updating user ${email} with role: ${userRole}`);
+    
+    const result = await db.collection('users').updateOne(
+      { email },
+      { 
+        $set: { 
+          role: userRole,
+          fullName: fullName || email,
+          updatedAt: new Date()
+        }
+      }
+    );
+    
+    debugUser(`Updated user ${email}: matched=${result.matchedCount}, modified=${result.modifiedCount}`);
+    
+    // Verify the update
+    const verifyUser = await db.collection('users').findOne({ email });
+    debugUser(`Verification - User ${email} now has role: ${verifyUser?.role}`);
+    
+    return result.modifiedCount > 0;
+  } catch (err) {
+    debugUser('Error updating user role:', err);
+    return false;
+  }
+}
+
+// Override Better Auth's sign-up to capture role
 router.post('/sign-up/email', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
+    debugUser('POST /api/users/sign-up/email called with:', { email, name, role });
 
-    // Validate input
+    // Validate input using the registerSchema
     const { error, value } = registerSchema.validate(req.body);
     if (error) {
+      debugUser(`Validation error: ${error.details[0].message}`);
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists" });
+    // Forward to Better Auth for actual authentication and user creation
+    const authRes = await fetch(
+      `http://localhost:${process.env.PORT || 8080}/api/auth/sign-up/email`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: value.email,
+          password: value.password,
+          name: value.name,
+        })
+      }
+    );
+
+    const authResult = await authRes.json();
+
+    if (!authRes.ok) {
+      debugUser('Better Auth sign-up failed:', authResult);
+      return res.status(authRes.status).json(authResult);
     }
 
-    // Hash password with bcrypt
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Now update the user with role and additional fields
+    const userRole = value.role || 'DEV';
+    const updated = await updateUserRoleAfterSignup(value.email, userRole, value.name);
+    
+    if (!updated) {
+      debugUser(`Warning: Could not update role for ${value.email}`);
+    }
 
-    // Create new user with hashed password
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      name
+    // Fetch the created user to log the hashed password
+    const db = await connect();
+    const createdUser = await db.collection('users').findOne({ email: value.email });
+    if (createdUser) {
+      console.log(`[HASHED PASSWORD] User: ${createdUser.email}`);
+      console.log(`[HASHED PASSWORD] Password Hash: ${createdUser.password}`);
+      console.log(`[HASHED PASSWORD] Role: ${createdUser.role}`);
+    }
+
+    debugUser(`User ${value.email} created successfully with role ${userRole}`);
+
+    // Return success
+    res.status(201).json({
+      message: "User created successfully",
+      data: {
+        email: value.email,
+        fullName: value.name,
+        role: userRole
+      }
     });
-
-    await newUser.save();
-    res.status(201).json({ message: "User created successfully", user: newUser });
   } catch (err) {
+    debugUser('Error in sign-up:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // POST /api/users/sign-in/email - Validate and forward to Better Auth
 router.post('/sign-in/email', async (req, res) => {
@@ -296,7 +362,6 @@ router.post('/sign-in/email', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
-
 
 // POST /api/users/sign-out - forward to Better Auth sign-out to clear cookie
 router.post('/sign-out', (req, res) => {

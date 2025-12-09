@@ -73,11 +73,9 @@ app.all('/api/auth/*splat', await toNodeHandler(auth));
 
 // Protect all API routes (except /api/auth/*) with authentication
 app.use('/api/users', isAuthenticated, UserRouter);
-// Support both plural and singular bug API paths for lab compatibility
 app.use('/api/bugs', isAuthenticated, BugRouter);
 app.use('/api/bugs/:bugId/comments', isAuthenticated, CommentRouter);
 app.use('/api/bugs/:bugId/testCases', isAuthenticated, TestRouter);
-// Lab expects /tests path; mount alias
 app.use('/api/bugs/:bugId/tests', isAuthenticated, TestRouter);
 
 // 404 handler for API routes (must come BEFORE catch-all)

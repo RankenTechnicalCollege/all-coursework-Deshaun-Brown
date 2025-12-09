@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
-// Remove: import { useAuth } from "@/contexts/AuthContext";
+import { signUp } from "@/lib/auth-client";
 
 // Zod schema for validation
 const registerSchema = z.object({
@@ -46,8 +46,6 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const navigate = useNavigate();
-  // Removed: const { signUp } = useAuth();
-  
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -94,26 +92,15 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-      const init:RequestInit={
-        method: "POST",
-        headers: {"Content-Type" : "application/json"},
-        credentials: "include",
-        body: JSON.stringify({
-          email:validation.data.email,
-          password: validation.data.password,
-          name:validation.data.fullName,
-          role:validation.data.role,
-      }),
-      };
+      const result = await signUp({
+        name: validation.data.fullName,  // map fullName to name
+        email: validation.data.email,
+        password: validation.data.password,
+        role: validation.data.role,
+      });
 
-      const res = await fetch(`${base}/api/auth/sign-up`, init);
-      const result = await res.json();
-
-      
-
-      if (result.error) {
-        const msg = result.error.message || "Registration failed. Please try again.";
+      if (!result.success) {
+        const msg = result.error?.message || "Registration failed. Please try again.";
         setBackendError(msg);
         showError(msg);
         setIsLoading(false);
@@ -123,6 +110,15 @@ export function RegisterForm() {
       // Successful registration
       const msg = "Registration successful! Welcome aboard!";
       showSuccess(msg);
+      
+      // Clear form
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: ""
+      });
       
       // Redirect to bugs/dashboard
       setTimeout(() => navigate("/bugs"), 800);
@@ -139,7 +135,7 @@ export function RegisterForm() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50 py-8">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <Link to="/dashboard" className="flex items-center justify-center bg-gray-50">
+          <Link to="/" className="flex items-center justify-center bg-gray-50">
           <span className="text-lg font-semibold">IssueTracker</span>
           </Link>
           <CardTitle>Create Account</CardTitle>
@@ -257,9 +253,8 @@ export function RegisterForm() {
                 onChange={handleChange}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.role ? "border-red-500" : "border-gray-300"
+                  errors.role ? "border-red-500" : "border-gray-400"
                 }`}
-              //Removed: required
               >
                 <option value="">Select a role</option>
                 <option value="DEV">Developer</option>

@@ -4,9 +4,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
-// Removed: import { useAuth } from "@/contexts/AuthContext";
-
-
+import { signIn } from "@/lib/auth-client";
+//import {AuthContext} from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -17,7 +16,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const navigate = useNavigate();
-
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -58,39 +56,41 @@ export function LoginForm() {
 
     setIsLoading(true);
     try {
-      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-      const res =await fetch(`${base}/auth/sign-in/email`, {
-        method: "POST",
-        headers: {"Content-Type" : "application/json"},
-        credentials: "include",
-        body: JSON.stringify({
-          email:validation.data.email,
-          password: validation.data.password,
-          
-      }),
+      const result = await signIn({
+        email: validation.data.email,
+        password: validation.data.password,
       });
 
-      const result = await res.json();
-
-      if (result.error) {
-        const msg = result.error.message || "Login failed. Please check your credentials.";
+      if (!result.success) {
+        const msg = result.error?.message || "Login failed. Please check your credentials.";
         setBackendError(msg);
         showError(msg);
         setIsLoading(false);
         return;
       }
 
-      // Successful login
+      // Successful login - clear form before redirect
+      setFormData({ email: "", password: "" });
+      setErrors({});
+      setBackendError("");
+      
       const msg = "Login successful!";
       showSuccess(msg);
       
-      // Redirect to bugs/dashboard
-      setTimeout(() => navigate("/bugs"), 800);
+      const roleRedirects: Record<string, string> = {
+        TM: "/users",
+        PM: "/reports",
+        BA: "/reports",
+        DEV: "/bugs",
+        QA: "/bugs",
+      };
+      const role = result.data?.role ?? "";
+      const redirectPath = roleRedirects[role] ?? "/bugs";
+      setTimeout(() => navigate(redirectPath), 800);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "An unexpected error occurred during login";
       setBackendError(msg);
       showError(msg);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -99,8 +99,8 @@ export function LoginForm() {
     <div className="flex items-center justify-center min-h-screen bg-white">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <Link to="/dashboard" className="flex items-center justify-center bg-gray-50">
-          <span className="text-lg font-semibold">IssueTracker</span>
+          <Link to="/" className="flex items-center justify-center bg-gray-50">
+            <span className="text-lg font-semibold">IssueTracker</span>
           </Link>
           <CardTitle>Login</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
@@ -124,7 +124,7 @@ export function LoginForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
                   errors.email ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
                 placeholder="you@example.com"
@@ -146,7 +146,7 @@ export function LoginForm() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 ${
                   errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
                 placeholder="••••••••"
@@ -165,16 +165,16 @@ export function LoginForm() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-              <p className="text-sm text-center text-gray-600 mt-4">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline font-medium">
-                  Create one
-                </Link>
-              </p>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            <p className="text-sm text-center text-gray-600 mt-4">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                Create one
+              </Link>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

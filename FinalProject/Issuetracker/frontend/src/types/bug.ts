@@ -7,5 +7,7 @@ export interface Bug {
   createdBy: string;
   assignedTo?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string; 
+  closed: boolean;
+  classification?: string;
 }

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
 import type { User, UserRole } from "@/types/user";
+import { useAuth } from "@/contexts/AuthContext";
+
 
 type UserEditorProps = {
   userId?: string;
@@ -15,7 +17,7 @@ type UserEditorProps = {
 
 const userSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.email("Please enter a valid email address"),
   role: z.enum(["developer", "qa", "business analyst", "product manager", "technical manager"]),
   password: z
     .string()
