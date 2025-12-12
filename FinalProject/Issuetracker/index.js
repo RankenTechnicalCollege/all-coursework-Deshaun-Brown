@@ -78,6 +78,11 @@ app.use('/api/bugs/:bugId/comments', isAuthenticated, CommentRouter);
 app.use('/api/bugs/:bugId/testCases', isAuthenticated, TestRouter);
 app.use('/api/bugs/:bugId/tests', isAuthenticated, TestRouter);
 
+app.get('/', (req, res) => {
+  res.redirect('/dashboard');
+});
+
+
 // 404 handler for API routes (must come BEFORE catch-all)
 app.use('/api/*path', (req, res) => {
     res.status(404).json({ error: 'API endpoint not found' });

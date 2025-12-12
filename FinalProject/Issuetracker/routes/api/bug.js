@@ -82,20 +82,20 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
     
     // Handle age filters (maxAge and minAge in days)
     if (maxAge || minAge) {
-      query.created = {};
+      query.createdAt = {};
       
       if (maxAge) {
         // Bugs created after (now - maxAge days)
         const maxAgeDate = new Date();
         maxAgeDate.setDate(maxAgeDate.getDate() - parseInt(maxAge));
-        query.created.$gte = maxAgeDate;
-      }
-      
+        query.createdAt.$gte = maxAgeDate;
+        }
+        
       if (minAge) {
         // Bugs created before (now - minAge days)
         const minAgeDate = new Date();
         minAgeDate.setDate(minAgeDate.getDate() - parseInt(minAge));
-        query.created.$lt = minAgeDate;
+        query.createdAt.$lt = minAgeDate;
       }
     }
     
@@ -109,30 +109,27 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
       // If closed is neither 'true' nor 'false', show all bugs (no filter)
     }
     
-    // Build sort object based on sortBy parameter
-    let sortObject = {};
+  let sortObject = {};
+    
     switch (sortBy) {
       case 'newest':
-        sortObject = { created: -1 };
+        sortObject = { createdAt: -1 };
         break;
       case 'oldest':
-        sortObject = { created: 1 };
+        sortObject = { createdAt: 1 };
         break;
       case 'title':
-        sortObject = { title: 1, created: -1 };
+        sortObject = { title: 1 };
         break;
       case 'classification':
-        sortObject = { classification: 1, created: -1 };
-        break;
-      case 'assignedTo':
-        sortObject = { assignedToUserName: 1, created: -1 };
-        break;
-      case 'createdBy':
-        sortObject = { authorOfBug: 1, created: -1 };
+        sortObject = { classification: 1, createdAt: -1 };
         break;
       default:
-        sortObject = { created: -1 }; // Default to newest
+        sortObject = { createdAt: -1 }; // Default to newest
     }
+
+
+
     
     // Calculate pagination
     const pageSizeNum = parseInt(pageSize) || 5;

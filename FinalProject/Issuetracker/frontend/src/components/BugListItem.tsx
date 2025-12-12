@@ -27,16 +27,19 @@ export function BugListItem({
     urgent: "bg-purple-100 text-purple-800 border-purple-200"
   };
 
-  const statusColors = {
-    open: "bg-green-100 text-green-800 border-green-200",
-    "in-progress": "bg-purple-100 text-purple-800 border-purple-200",
-    closed: "bg-gray-100 text-gray-800 border-gray-200",
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    resolved: "bg-teal-100 text-teal-800 border-teal-200"
-  };
+ const statusColors: Record<string, string> = {
+  all: "bg-primary/20 text-primary border-primary",
+  open: "bg-green-100 text-green-800 border-green-300",
+  inprogress: "bg-purple-100 text-purple-800 border-purple-300",
+  pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  resolved: "bg-teal-100 text-teal-800 border-teal-300",
+  closed: "bg-gray-100 text-gray-800 border-gray-300",
+};
+
 
   const priority = item.priority ?? "medium";
-  const status = item.status ?? "open";
+  // Normalize status to match keys like "in-progress" even if API returns "in_progress"
+  const status = (item.status ?? "open").toLowerCase().replace(/_/g, "-");
   const createdBy = item.createdBy ?? item.authorOfBug ?? "Unknown";
   const assignedTo = item.assignedTo ?? item.assignedToUserName;
   const bugLink = `/bug/${item._id}`;
@@ -62,7 +65,9 @@ export function BugListItem({
                 statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
               )}
             >
-              {status === "in-progress" ? "In Progress" : status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === "in-progress"
+                ? "In Progress"
+                : status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
           </div>
 
@@ -79,19 +84,20 @@ export function BugListItem({
           {/* Footer Metadata */}
           <div className="flex items-center justify-between text-sm pt-2">
             <div className="flex items-center gap-4">
-              <span
-                className={cn(
-                  "font-medium capitalize text-xs px-2 py-1 rounded border",
-                  priorityColors[priority as keyof typeof priorityColors] || "bg-gray-100 text-gray-800"
-                )}
-              >
-                {priority}
-              </span>
-              <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                <Clock className="h-3.5 w-3.5" />
-                {timeAgo}
-              </span>
-            </div>
+  <span
+    className={cn(
+      "font-medium capitalize text-xs px-2 py-1 rounded border",
+      priorityColors[priority as keyof typeof priorityColors] || "bg-gray-100 text-gray-800"
+    )}
+  >
+    {priority}
+  </span>
+  <span className="flex items-center gap-1 text-muted-foreground text-xs">
+    <Clock className="h-3.5 w-3.5" />
+    {timeAgo}
+  </span>
+</div>
+
 
             {assignedTo && (
               <div className="flex items-center gap-2 text-xs">

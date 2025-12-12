@@ -26,6 +26,11 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route
+  path="/"
+  element={<Navigate to="/dashboard" replace />}
+/>
+
             <Route path="/" element={<DashboardPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
 
@@ -43,7 +48,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -19,20 +19,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load session on first load
   useEffect(() => {
-    const load = async () => {
-      const session = await getSession();
-      setUser(session);
-      setLoading(false);
-    };
-    load();
-  }, []);
+  const load = async () => {
+    const session = await getSession();
+
+    if (session?.user) {
+      setUser(session.user);   // <-- FIXED
+    } else {
+      setUser(null);
+    }
+
+    setLoading(false);
+  };
+  load();
+}, []);
 
   // ---- SIGN IN ----
   const signIn = async (formData: any) => {
     const result = await apiSignIn(formData);
 
     if (result.success && result.data) {
-      setUser(result.data);
+      setUser(result.data.user);
     }
 
     return result;

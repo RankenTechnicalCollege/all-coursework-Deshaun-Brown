@@ -51,7 +51,7 @@ export function BugsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4 bg-gray-50 p-6 rounded-lg border">
+<div className="space-y-4 bg-muted p-6 rounded-xl border overflow-visible">
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -72,34 +72,41 @@ export function BugsPage() {
               Status
             </label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+  <SelectTrigger className="w-[180px]">
+    <SelectValue placeholder="Filter by status" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="all">All</SelectItem>
+    <SelectItem value="open">Open</SelectItem>
+    <SelectItem value="in_progress">In Progress</SelectItem>
+    <SelectItem value="closed">Closed</SelectItem>
+  </SelectContent>
+</Select>
+
           </div>
 
           {/* Sort By */}
-          <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" />
-              Sort By
-            </label>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="title">Title (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-2">
+  <label className="text-sm font-medium text-muted-foreground">
+    Sort By
+  </label>
+
+  <Select value={sortBy} onValueChange={setSortBy}>
+    <SelectTrigger className="w-[200px]">
+      <SelectValue placeholder="Sort bugs" />
+    </SelectTrigger>
+
+    <SelectContent>
+      <SelectItem value="newest">Newest First</SelectItem>
+      <SelectItem value="oldest">Oldest First</SelectItem>
+      <SelectItem value="priority-high">Highest Priority</SelectItem>
+      <SelectItem value="priority-low">Lowest Priority</SelectItem>
+      <SelectItem value="title-az">Title A → Z</SelectItem>
+      <SelectItem value="title-za">Title Z → A</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+
         </div>
       </div>
 

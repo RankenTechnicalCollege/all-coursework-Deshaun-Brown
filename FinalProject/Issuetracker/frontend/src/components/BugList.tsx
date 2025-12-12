@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { showError, showSuccess, cn } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/utils";
 import type { Bug } from "@/types/bug";
 import { BugListItem } from "@/components/BugListItem";
 import { Filter } from "lucide-react";
@@ -14,23 +14,50 @@ export function BugList() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
 
-  // Fetch bugs on component mount
   useEffect(() => {
     fetchBugs();
-  }, []);
+  }, [sortBy]);
 
   const fetchBugs = async () => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-      const res = await fetch(`${base}/bugs`, { credentials: "include" });
-      if (!res.ok) throw new Error(`Failed to fetch bugs (${res.status})`);
+      const base = import.meta.env.VITE_API_URL
+      const params = new URLSearchParams({
+        sortBy: sortBy,
+        pageSize: "1000" // Fetch more bugs at once
+      });
+      
+      const res = await fetch(`${base}/api/bugs?${params}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch bugs (${res.status})`);
+      }
+
       const data: Bug[] | { bugs: Bug[] } = await res.json();
       const bugsList = Array.isArray(data) ? data : data?.bugs || [];
-      setBugs(bugsList);
-    } catch (err) {
+
+      // Normalize timestamps
+const safeDate = (val: string | undefined | number) =>
+  val ? new Date(val).toISOString() : new Date().toISOString();
+
+const normalized = bugsList.map((bug) => ({
+  ...bug,
+  createdAt: safeDate(bug.createdAt ?? 0),
+  updatedAt: safeDate(bug.updatedAt ?? 0),
+}));
+
+
+
+      setBugs(normalized);
+    } 
+    
+      catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load bugs";
       setError(msg);
       showError(msg);
@@ -47,17 +74,19 @@ export function BugList() {
     if (!window.confirm("Are you sure you want to delete this bug?")) return;
 
     setDeletingId(bugId);
+
     try {
-      const base = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${base}/bugs/${bugId}`, {
+      const base = import.meta.env.VITE_API_URL 
+      const res = await fetch(`${base}/api/bugs/${bugId}`, {
         method: "DELETE",
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error(`Failed to delete bug (${res.status})`);
+      if (!res.ok) {
+        throw new Error(`Failed to delete bug (${res.status})`);
+      }
 
-      // Remove from list
-      setBugs(prev => prev.filter(b => b._id !== bugId));
+      setBugs((prev) => prev.filter((b) => b._id !== bugId));
       showSuccess("Bug deleted successfully.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to delete bug";
@@ -67,12 +96,12 @@ export function BugList() {
     }
   };
 
-  // Loading state
+  // LOADING UI
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div></div>
+          <div />
           <Button onClick={() => navigate("/bug/new")}>Create Bug</Button>
         </div>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -82,14 +111,15 @@ export function BugList() {
     );
   }
 
-  // Error state
+  // ERROR UI
   if (error) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div></div>
+          <div />
           <Button onClick={() => navigate("/bug/new")}>Create Bug</Button>
         </div>
+
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <div className="text-red-600 text-4xl">⚠️</div>
@@ -103,12 +133,12 @@ export function BugList() {
     );
   }
 
-  // Empty state
+  // EMPTY UI
   if (bugs.length === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div></div>
+          <div />
           <Button onClick={() => navigate("/bug/new")}>Create Bug</Button>
         </div>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -127,44 +157,58 @@ export function BugList() {
   const statuses = ["all", "open", "in-progress", "resolved", "closed"];
   const priorities = ["all", "low", "medium", "high", "critical"];
 
-  const filteredBugs = bugs.filter(bug => {
-    const matchesStatus = statusFilter === "all" || bug.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || bug.priority === priorityFilter;
+  const filteredBugs = bugs.filter((bug) => {
+    const matchesStatus =
+      statusFilter === "all" || bug.status === statusFilter;
+
+    const matchesPriority =
+      priorityFilter === "all" || bug.priority === priorityFilter;
+
     return matchesStatus && matchesPriority;
   });
 
-  const getStatusButtonClass = (status: string, isActive: boolean) => {
-    if (!isActive) return "";
-    const classes: Record<string, string> = {
-      open: "bg-green-100 text-green-800 border-green-300",
-      "in-progress": "bg-purple-100 text-purple-800 border-purple-300",
-      resolved: "bg-teal-100 text-teal-800 border-teal-300",
-      closed: "bg-gray-100 text-gray-800 border-gray-300",
-    };
-    return classes[status] || "bg-primary/20 text-primary border-primary";
-  };
+  // Backend now handles sorting, but keep this for immediate client-side re-filtering
+  const sortedBugs = filteredBugs;
 
-  // Bugs list
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="space-y-4 bg-gray-50 p-6 rounded-lg border">
+      {/* FILTERS */}
+      <div className="space-y-4 bg-muted p-6 rounded-xl border overflow-visible">
+        {/* SORT */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            Sort By
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {["newest", "oldest", "title"].map((sort) => (
+              <Button
+                key={sort}
+                variant={sortBy === sort ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy(sort)}
+                className="capitalize"
+              >
+                {sort === "newest" ? "Newest First" : sort === "oldest" ? "Oldest First" : "Title A-Z"}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* STATUS FILTER */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Filter className="h-3.5 w-3.5" />
             Status Filter
           </label>
+
           <div className="flex flex-wrap gap-2">
             {statuses.map((status) => (
               <Button
                 key={status}
-                variant="outline"
+                variant={statusFilter === status ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter(status)}
-                className={cn(
-                  "capitalize",
-                  statusFilter === status && getStatusButtonClass(status, true)
-                )}
+                className="capitalize"
               >
                 {status === "all" ? "All" : status.replace("-", " ")}
               </Button>
@@ -172,19 +216,19 @@ export function BugList() {
           </div>
         </div>
 
+        {/* PRIORITY FILTER */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Priority Filter</label>
+          <label className="text-sm font-medium text-muted-foreground">
+            Priority Filter
+          </label>
           <div className="flex flex-wrap gap-2">
             {priorities.map((priority) => (
               <Button
                 key={priority}
-                variant="outline"
+                variant={priorityFilter === priority ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPriorityFilter(priority)}
-                className={cn(
-                  "capitalize",
-                  priorityFilter === priority && "bg-primary/20 text-primary border-primary"
-                )}
+                className="capitalize"
               >
                 {priority === "all" ? "All" : priority}
               </Button>
@@ -193,14 +237,13 @@ export function BugList() {
         </div>
       </div>
 
-      {/* Results count */}
       <p className="text-sm text-muted-foreground">
         Showing {filteredBugs.length} of {bugs.length} bugs
       </p>
 
-      {/* Bugs grid */}
+      {/* BUG LIST */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredBugs.map((bug, index) => (
+        {sortedBugs.map((bug, index) => (
           <div
             key={bug._id}
             className="animate-fade-in"
@@ -216,10 +259,20 @@ export function BugList() {
         ))}
       </div>
 
+      {/* EMPTY FILTER RESULTS */}
       {filteredBugs.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-muted-foreground">No bugs found matching your criteria.</p>
-          <Button variant="outline" onClick={() => { setStatusFilter("all"); setPriorityFilter("all"); }} className="mt-4">
+          <p className="text-muted-foreground">
+            No bugs found matching your criteria.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setStatusFilter("all");
+              setPriorityFilter("all");
+            }}
+            className="mt-4"
+          >
             Clear Filters
           </Button>
         </div>
