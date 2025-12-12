@@ -18,7 +18,7 @@ type UserEditorProps = {
 const userSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   email: z.email("Please enter a valid email address"),
-  role: z.enum(["developer", "qa", "business analyst", "product manager", "technical manager"]),
+  role: z.enum(["developer", "quality analyst", "business analyst", "product manager", "technical manager"]),
   password: z
     .string()
     .min(7, "Password must be at least 7 characters")
@@ -30,17 +30,18 @@ type UserFormData = z.infer<typeof userSchema>;
 
 // Map role names to codes
 const roleNameToCode: Record<string, UserRole> = {
-  developer: "DEV",
-  qa: "QA",
+  "developer": "DEV",
+  "quality analyst": "QA",        // ← FIXED
   "business analyst": "BA",
   "product manager": "PM",
   "technical manager": "TM",
 };
 
+
 // Map codes to names for display
 const roleCodeToName: Record<UserRole, string> = {
   DEV: "developer",
-  QA: "qa",
+  QA: "quality analyst",
   BA: "business analyst",
   PM: "product manager",
   TM: "technical manager",
@@ -179,7 +180,7 @@ export function UserEditor({ userId: propUserId, onSave, onCancel }: UserEditorP
 
   const roleOptions: UserFormData["role"][] = [
     "developer",
-    "qa",
+    "quality analyst",
     "business analyst",
     "product manager",
     "technical manager",

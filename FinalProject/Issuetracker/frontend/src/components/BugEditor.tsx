@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { z } from "zod";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
@@ -20,11 +21,11 @@ const bugSchema = z.object({
     .max(500, "Description must be less than 500 characters"),
   
   priority: z
-    .enum(["low", "medium", "high", "critical"])
+    .enum(["low", "medium", "high", "critical", "urgent"])
     .default("medium"),
   
   status: z
-    .enum(["open", "in-progress", "closed"])
+    .enum(["open", "in-progress", "closed", "pending", "resolved"])
     .default("open"),
   
   assignedTo: z
@@ -43,11 +44,11 @@ interface BugEditorProps {
 
 export function BugEditor({ bug, onSave, onCancel }: BugEditorProps) {
   const [formData, setFormData] = useState<BugFormData>({
-    title: bug?.title || "",
-    description: bug?.description || "",
-    priority: bug?.priority || "medium",
-    status: bug?.status || "open",
-    assignedTo: bug?.assignedTo || ""
+    title: bug?.title ?? "",
+    description: bug?.description ?? "",
+    priority: (bug?.priority as BugFormData["priority"]) ?? "medium",
+    status: (bug?.status as BugFormData["status"]) ?? "open",
+    assignedTo: bug?.assignedTo ?? ""
   });
   
   const [errors, setErrors] = useState<Partial<Record<keyof BugFormData, string>>>({});
@@ -57,11 +58,11 @@ export function BugEditor({ bug, onSave, onCancel }: BugEditorProps) {
   useEffect(() => {
     if (bug) {
       setFormData({
-        title: bug.title,
-        description: bug.description,
-        priority: bug.priority,
-        status: bug.status,
-        assignedTo: bug.assignedTo || ""
+        title: bug.title ?? "",
+        description: bug.description ?? "",
+        priority: (bug.priority as BugFormData["priority"]) ?? "medium",
+        status: (bug.status as BugFormData["status"]) ?? "open",
+        assignedTo: bug.assignedTo ?? ""
       });
     }
   }, [bug]);
@@ -109,7 +110,34 @@ export function BugEditor({ bug, onSave, onCancel }: BugEditorProps) {
       const message = bug?._id ? "Bug updated successfully!" : "Bug created successfully!";
       showSuccess(message);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to save bug";
+      const axiosError = err as AxiosError<{
+        type: string;
+        fields: Record<string, string>;
+        message: string;
+      }>;
+
+      // Handle validation errors from backend
+      if (
+        axiosError.response?.status === 400 &&
+        axiosError.response?.data?.type === "ValidationFailed"
+      ) {
+        const backendErrors = axiosError.response.data.fields || {};
+        const fieldErrors: Partial<Record<keyof BugFormData, string>> = {};
+        
+        Object.keys(backendErrors).forEach((key) => {
+          if (key in formData) {
+            fieldErrors[key as keyof BugFormData] = backendErrors[key];
+          }
+        });
+        
+        setErrors(fieldErrors);
+        setBackendError(axiosError.response.data.message || "Validation failed");
+        return;
+      }
+
+      const errorMsg = axiosError.response?.data?.message || 
+                       axiosError.response?.statusText || 
+                       "Failed to save bug";
       setBackendError(errorMsg);
       showError(errorMsg);
       console.error("Save bug error:", err);
@@ -188,6 +216,7 @@ export function BugEditor({ bug, onSave, onCancel }: BugEditorProps) {
               <option value="medium">Medium</option>
               <option value="high">High</option>
               <option value="critical">Critical</option>
+              <option value="urgent">Urgent</option>
             </select>
           </div>
 
@@ -207,6 +236,8 @@ export function BugEditor({ bug, onSave, onCancel }: BugEditorProps) {
               <option value="open">Open</option>
               <option value="in-progress">In Progress</option>
               <option value="closed">Closed</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
             </select>
           </div>
 

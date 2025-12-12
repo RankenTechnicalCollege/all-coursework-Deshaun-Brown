@@ -15,25 +15,31 @@ export const auth = betterAuth({
     "http://localhost:5173",
     "https://issuetracker-service-293672483239.us-central1.run.app",
   ],
-  secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-me",
+  secret: process.env.BETTER_AUTH_SECRET || "44d896c6e63c1875bc292138f4f53fd4b383d02c58530ced574b1f3d86901112",
   // Use pluralized collection names (users, sessions, etc.) so they match the rest of the app
   database: mongodbAdapter(db, { client, usePlural: true }),
   emailAndPassword: {
     enabled: true,
   },
-  session:{
-       expiresIn: 300, // 5 minutes
-       cookieCache: {
-            enabled: true, // Enable caching session in cookie (default: `false`)    
-            maxAge: 300 // 5 minutes
-        },
-   user: {
-        additionalFields: {
-            role: {
-                type: "string",
-                required: true,
-            },
-        },
+  session: {
+    expiresIn: 300, // 5 minutes
+    cookieCache: {
+      enabled: true, // Enable caching session in cookie (default: `false`)    
+      maxAge: 300 // 5 minutes
+    },
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "DEV",
+      },
+      fullName: {
+        type: "string",
+        required: false,
+      },
+    },
   },
   hooks: {
     // Hook called after user is created
@@ -44,6 +50,6 @@ export const auth = betterAuth({
       return user;
     },
   },
-}});
+});
 
 export default auth;

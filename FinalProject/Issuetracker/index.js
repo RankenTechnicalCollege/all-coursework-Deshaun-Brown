@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
 app.get('/api/get-session', (req, res) => {
   // return session data or placeholder
-  res.json(307, '/api/auth/session');
+  res.redirect(307, '/api/auth/session');
 });
 
 // Help Postman by defaulting Origin in dev (Better Auth requires Origin)
@@ -69,7 +69,7 @@ app.post('/api/users/sign-in/email', (req, res) => res.redirect(307, '/api/auth/
 app.post('/api/users/sign-out', (req, res) => res.redirect(307, '/api/auth/sign-out'));
 
 // Better Auth routes (registration, login, logout, session, etc.)
-app.all('/api/auth/*splat', await toNodeHandler(auth));
+app.all('/api/auth/*splat', toNodeHandler(auth));
 
 // Protect all API routes (except /api/auth/*) with authentication
 app.use('/api/users', isAuthenticated, UserRouter);

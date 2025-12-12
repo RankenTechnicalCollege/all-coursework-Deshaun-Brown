@@ -1,91 +1,79 @@
-import { createContext, useContext, createElement, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { signIn, signUp, signOut as authSignOut } from "@/lib/auth-client";
 
-interface User {
-  id: string;
-  email: string;
-  fullName?: string;
-  role?: string;
-}
+import { signIn as apiSignIn, signUp as apiSignUp, signOut as apiSignOut, getSession } from "@/lib/auth-client";
 
 interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  signIn: typeof signIn;
-  signUp: typeof signUp;
-  signOut: () => Promise<void>;
+  user: any | null;
+  loading: boolean;
+  signIn: (data: any) => Promise<any>;  
+  signUp: (data: any) => Promise<any>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const fetchSession = useCallback(async () => {
-    try {
-      const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-      const res = await fetch(`${base}/auth/session`, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email,
-            fullName: data.user.name || data.user.fullName,
-            role: data.user.role,
-          });
-          return;
-        }
-      }
-      setUser(null);
-    } catch (err) {
-      console.error("Failed to fetch session:", err);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  // Load session on first load
+  useEffect(() => {
+    const load = async () => {
+      const session = await getSession();
+      setUser(session);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  useEffect(() => {
-    fetchSession();
-  }, [fetchSession]);
+  // ---- SIGN IN ----
+  const signIn = async (formData: any) => {
+    const result = await apiSignIn(formData);
 
-  const handleSignIn: typeof signIn = async (payload) => {
-    const res = await signIn(payload);
-    if (res.success) await fetchSession();
-    return res;
+    if (result.success && result.data) {
+      setUser(result.data);
+    }
+
+    return result;
   };
 
-  const handleSignUp: typeof signUp = async (payload) => {
-    const res = await signUp(payload);
-    if (res.success) await fetchSession();
-    return res;
+  // ---- SIGN UP ----
+  const signUp = async (formData: any) => {
+    const result = await apiSignUp(formData);
+
+    if (result.success && result.data) {
+      setUser(result.data);
+    }
+
+    return result;
   };
 
-  const handleSignOut = async () => {
-    await authSignOut();
+  // ---- LOGOUT ----
+  const logout = async () => {
+    await apiSignOut();
     setUser(null);
   };
 
-  const value: AuthContextType = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    signIn: handleSignIn,
-    signUp: handleSignUp,
-    signOut: handleSignOut,
-  };
-
-  return createElement(AuthContext.Provider, { value }, children);
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signIn,
+        signUp,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used inside <AuthProvider>");
   }
-  return context;
+  return ctx;
 }

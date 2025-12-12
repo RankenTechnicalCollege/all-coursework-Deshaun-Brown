@@ -1,12 +1,33 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+import axios from "axios";
+
+// Normalize axios errors into a user-friendly message
+const parseError = (err: unknown): string => {
+  if (axios.isAxiosError(err)) {
+    if (err.code === "ERR_NETWORK" || err.message?.toLowerCase().includes("network")) {
+      return "Cannot reach the API server. Is it running and is VITE_API_URL correct?";
+    }
+    if (err.response) {
+      return (
+        (err.response.data as any)?.error ||
+        (err.response.data as any)?.message ||
+        `Request failed with status ${err.response.status}`
+      );
+    }
+  }
+  return (err as any)?.message || "Unexpected error";
+};
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
 
 export interface SignInPayload {
   email: string;
   password: string;
 }
-
 export interface SignUpPayload {
-  name: string;  // backend expects 'name', not 'fullName'
+  name: string;
   email: string;
   password: string;
   role: string;
@@ -14,151 +35,45 @@ export interface SignUpPayload {
 
 export interface AuthResponse {
   success: boolean;
-  data?: {
-    _id: string;
-    email: string;
-    fullName?: string;
-    role?: string; // allow role from API
-  };
+  data?: any;
   error?: {
     message: string;
   };
 }
 
-async function parseJsonSafe(res: Response) {
-  const contentType = res.headers.get("content-type") || "";
-  if (!contentType.toLowerCase().includes("application/json")) {
-    // consume body to avoid stream locking, but don't parse
-    await res.text().catch(() => {});
-    return {};
-  }
-  try {
-    return await res.json();
-  } catch {
-    return {};
-  }
-}
-
 export async function signIn(payload: SignInPayload): Promise<AuthResponse> {
   try {
-    const response = await fetch(`${API_BASE}/auth/sign-in/email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    const result = await parseJsonSafe(response);
-
-    if (!response.ok || (result as any).error) {
-      return {
-        success: false,
-        error: (result as any).error || { message: "Sign in failed" },
-      };
-    }
-
-    return {
-      success: true,
-      data: (result as any).data,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "An error occurred";
-    return { success: false, error: { message } };
+    const response = await api.post("/users/sign-in/email", payload);
+    return { success: true, data: response.data };
+  } catch (err: any) {
+    const msg = parseError(err);
+    return { success: false, error: { message: msg } };
   }
 }
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
   try {
-    // Call Better Auth directly
-    const response = await fetch(`${API_BASE}/auth/sign-up/email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        name: payload.name,
-        email: payload.email,
-        password: payload.password,
-        role: payload.role
-      }),
-    });
-
-    const result = await parseJsonSafe(response);
-
-    if (!response.ok || (result as any).error) {
-      return {
-        success: false,
-        error: (result as any).error || { message: "Sign up failed" },
-      };
-    }
-
-    return {
-      success: true,
-      data: (result as any).data,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "An error occurred";
-    return { success: false, error: { message } };
+    const response = await api.post("/users/sign-up/email", payload);
+    return { success: true, data: response.data };
+  } catch (err: any) {
+    const msg = parseError(err);
+    return { success: false, error: { message: msg } };
   }
 }
 
-export async function signOut(): Promise<AuthResponse> {
+export async function signOut(): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE}/auth/sign-out`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-
-    const result = await parseJsonSafe(response);
-
-    if (!response.ok || (result as any).error) {
-      return {
-        success: false,
-        error: (result as any).error || { message: "Sign out failed" },
-      };
-    }
-
-    return { success: true };
+    await api.post("/users/sign-out");
   } catch (err) {
-    const message = err instanceof Error ? err.message : "An error occurred";
-    return { success: false, error: { message } };
+    throw new Error(parseError(err));
   }
 }
 
-// Session management utility (optional, for future use)
 export async function getSession() {
   try {
-    const response = await fetch(`${API_BASE}/auth/session`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return await response.json();
-  } catch (err) {
+    const { data } = await api.get("/users/me");
+    return data;
+  } catch {
     return null;
   }
 }
-
-export interface UseSessionResult {
-  data: {
-    user: {
-      id: string;
-      email: string;
-      fullName?: string;
-    } | null;
-  } | null;
-  isPending: boolean;
-}
-
-export function useSession(): UseSessionResult {
-  // This is a placeholder. In a real app, you'd use React hooks here
-  return {
-    data: null,
-    isPending: false,
-  };
-}
-

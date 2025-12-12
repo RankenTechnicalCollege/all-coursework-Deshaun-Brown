@@ -4,9 +4,9 @@ import { Footer } from "@/components/Footer";
 
 export function AppLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-1 bg-white">
+      <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>
       <Footer />

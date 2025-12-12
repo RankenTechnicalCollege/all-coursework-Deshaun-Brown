@@ -12,7 +12,7 @@ type UserListItemProps = {
 // Map codes to names for display
 const roleCodeToName: Record<UserRole, string> = {
   DEV: "Developer",
-  QA: "QA",
+  QA: "Quality Analyst",
   BA: "Business Analyst",
   PM: "Product Manager",
   TM: "Technical Manager",

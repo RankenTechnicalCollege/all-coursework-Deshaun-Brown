@@ -1,6 +1,7 @@
 import express from 'express';
 import debug from 'debug';
 import bcrypt from 'bcrypt';
+import axios from 'axios';
 import {connect, newId, isValidId, saveAuditLog} from '../../database.js';
 import { isAuthenticated } from '../../middleware/isAuthenticated.js';
 import { requirePermission } from '../../middleware/roles.js';
@@ -248,11 +249,17 @@ router.get('/:userId', isAuthenticated, requirePermission('canViewData'), async 
 });
 
 // POST /api/users/sign-up/email - Create new user with hashed password
-// Helper to update user role after signup
+/**
+ * Helper to update user role after signup
+ * @param {string} email - User's email address
+ * @param {string} role - User role code (DEV, QA, BA, PM, TM)
+ * @param {string} fullName - User's full name
+ * @returns {Promise<boolean>} True if update succeeded
+ */
 async function updateUserRoleAfterSignup(email, role, fullName) {
   try {
     const db = await connect();
-    const userRole = role || 'DEV'|| 'TM'|| 'QA'|| 'BA'||'PA';
+    const userRole = role || 'DEV';
     
     debugUser(`Updating user ${email} with role: ${userRole}`);
     
@@ -293,25 +300,23 @@ router.post('/sign-up/email', async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    // Forward to Better Auth for actual authentication and user creation
-    const authRes = await fetch(
-      `http://localhost:${process.env.PORT || 8080}/api/auth/sign-up/email`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: value.email,
-          password: value.password,
-          name: value.name,
-        })
-      }
-    );
+    // Forward to Better Auth for actual authentication and user creation (axios)
+    const authUrl = process.env.BETTER_AUTH_URL
+      || `http://localhost:${process.env.PORT || 8080}/api/auth/sign-up/email`;
 
-    const authResult = await authRes.json();
+    const authRes = await axios.post(authUrl, {
+      email: value.email,
+      password: value.password,
+      name: value.name,
+      role: value.role,
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+      validateStatus: status => status < 500, // surface 4xx as handled responses
+    });
 
-    if (!authRes.ok) {
-      debugUser('Better Auth sign-up failed:', authResult);
-      return res.status(authRes.status).json(authResult);
+    if (authRes.status >= 400) {
+      debugUser('Better Auth sign-up failed:', authRes.data);
+      return res.status(authRes.status).json(authRes.data);
     }
 
     // Now update the user with role and additional fields
@@ -349,19 +354,24 @@ router.post('/sign-up/email', async (req, res) => {
 });
 
 // POST /api/users/sign-in/email - Validate and forward to Better Auth
-router.post('/sign-in/email', async (req, res) => {
+router.post('/api/users/sign-in/email', async (req, res) => {
   try {
-    const { error, value } = loginSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
-    }
+    const response = await axios.post(
+      'http://localhost:8080/api/auth/sign-in/email',
+      req.body,
+      { headers: { origin: req.headers.origin } }
+    );
 
-    // Forward to Better Auth for actual authentication
-    return res.redirect(307, '/api/auth/sign-in/email');
+    // Forward Better Auth’s response back to the client
+    res.status(response.status).json(response.data);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    res.status(err.response?.status || 500).json({
+      error: err.message,
+      details: err.response?.data,
+    });
   }
 });
+
 
 // POST /api/users/sign-out - forward to Better Auth sign-out to clear cookie
 router.post('/sign-out', (req, res) => {

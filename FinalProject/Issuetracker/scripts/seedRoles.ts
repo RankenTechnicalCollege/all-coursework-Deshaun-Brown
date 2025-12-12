@@ -1,5 +1,4 @@
 // scripts/seedRoles.js
-// Seeds the roles collection with permissions based on Step 1 matrix
 import { connect } from '../database.js';
 
 const ROLES = [
@@ -10,24 +9,30 @@ const ROLES = [
       canViewData: true,
       canCreateBug: true,
       canEditMyBug: true,
+
       canEditIfAssignedTo: true,
       canReassignIfAssignedTo: true,
       canBeAssignedTo: true,
+
       canLogHours: true,
       canApplyFixInVersion: true,
       canAssignVersionDate: true,
+
       canAddComment: true,
       canAddTestCase: false,
       canEditTestCase: false,
       canDeleteTestCase: false,
+
       canEditAnyBug: false,
       canCloseAnyBug: false,
       canClassifyAnyBug: false,
       canReassignAnyBug: false,
+
       canEditAnyUser: false,
       canAssignRoles: false,
     },
   },
+
   {
     code: 'QA',
     name: 'Quality Analyst',
@@ -35,49 +40,63 @@ const ROLES = [
       canViewData: true,
       canCreateBug: true,
       canEditMyBug: true,
+
       canEditIfAssignedTo: true,
       canReassignIfAssignedTo: true,
       canBeAssignedTo: true,
+
       canAddComment: true,
       canAddTestCase: true,
       canEditTestCase: true,
       canDeleteTestCase: true,
+
       canLogHours: false,
       canApplyFixInVersion: false,
       canAssignVersionDate: false,
+
       canEditAnyBug: false,
       canCloseAnyBug: false,
       canClassifyAnyBug: false,
       canReassignAnyBug: false,
+
       canEditAnyUser: false,
       canAssignRoles: false,
     },
   },
+
   {
     code: 'BA',
     name: 'Business Analyst',
     permissions: {
       canViewData: true,
       canCreateBug: true,
+
       canEditAnyBug: true,
       canCloseAnyBug: true,
-      canClassifyAnyBug: true,                                              
+      canClassifyAnyBug: true,
       canReassignAnyBug: true,
+
       canEditIfAssignedTo: true,
       canReassignIfAssignedTo: true,
       canBeAssignedTo: true,
+
       canAddComment: true,
+
       canAddTestCase: false,
       canEditTestCase: false,
       canDeleteTestCase: false,
+
       canLogHours: false,
       canApplyFixInVersion: false,
       canAssignVersionDate: false,
+
       canEditAnyUser: false,
       canAssignRoles: false,
+
       canEditMyBug: false,
     },
   },
+
   {
     code: 'PM',
     name: 'Product Manager',
@@ -85,46 +104,63 @@ const ROLES = [
       canViewData: true,
       canCreateBug: true,
       canEditMyBug: true,
+
       canEditIfAssignedTo: true,
       canReassignIfAssignedTo: true,
       canBeAssignedTo: true,
+
       canAddComment: true,
+
       canAddTestCase: false,
       canEditTestCase: false,
       canDeleteTestCase: false,
       canLogHours: false,
       canApplyFixInVersion: false,
       canAssignVersionDate: false,
+
       canEditAnyBug: false,
       canCloseAnyBug: false,
       canClassifyAnyBug: false,
       canReassignAnyBug: false,
+
       canEditAnyUser: false,
       canAssignRoles: false,
     },
   },
+
   {
     code: 'TM',
     name: 'Technical Manager',
     permissions: {
       canViewData: true,
+
+      // ► IMPORTANT: TM needs both of these for /api/users GET
       canAssignRoles: true,
       canEditAnyUser: true,
+
+      // ► TM handles any bug
       canEditAnyBug: true,
       canReassignAnyBug: true,
+
+      // ► Still allowed for assigned tasks
       canEditIfAssignedTo: true,
       canReassignIfAssignedTo: true,
       canBeAssignedTo: true,
+
       canAddComment: true,
-      canCreateBug: false,
+
+      canCreateBug: false, // TM oversees but does not create
       canCloseAnyBug: false,
       canClassifyAnyBug: false,
+
       canAddTestCase: false,
       canEditTestCase: false,
       canDeleteTestCase: false,
+
       canLogHours: false,
       canApplyFixInVersion: false,
       canAssignVersionDate: false,
+
       canEditMyBug: true,
     },
   },

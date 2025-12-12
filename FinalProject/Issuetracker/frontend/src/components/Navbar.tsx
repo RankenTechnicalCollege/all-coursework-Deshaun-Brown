@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,13 +42,14 @@ const contextualLinks: Record<string, NavItem[]> = {
 };
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const userRole = user?.role as RoleCode | undefined;
 
   const visibleNavItems = user
     ? navItems.filter((item) => userRole && item.roles.includes(userRole))
-    : navItems.filter((item) => !item.requiresAuth);
+    : [];
 
   const currentContextualLinks = user
     ? (contextualLinks[location.pathname] || []).filter(
@@ -57,13 +58,14 @@ export function Navbar() {
     : [];
 
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = "/login";
+    await logout();
+    navigate("/dashboard");
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#ff0000] bg-[#0f0f0f] text-white">
+    <header className="sticky top-0 z-40 border-b border-[#616161] bg-[#0f0f0f] text-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+        
         {/* Brand */}
         <Link
           to={user ? "/dashboard" : "/"}
@@ -120,7 +122,7 @@ export function Navbar() {
           {user ? (
             <>
               <span className="text-sm text-gray-200">
-                {user.fullName ?? user.email} ({userRole})
+                {user.fullName || user.name} ({userRole})
               </span>
               <Button
                 variant="outline"
@@ -155,6 +157,7 @@ export function Navbar() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
+
           <SheetContent side="right" className="bg-[#0f0f0f] text-white">
             <SheetHeader>
               <SheetTitle>
@@ -166,8 +169,8 @@ export function Navbar() {
                 </Link>
               </SheetTitle>
             </SheetHeader>
+
             <div className="mt-6 flex flex-col gap-4">
-              {/* Main nav items */}
               {visibleNavItems.map((link) => (
                 <NavLink
                   key={link.to}
@@ -183,7 +186,6 @@ export function Navbar() {
                 </NavLink>
               ))}
 
-              {/* Contextual links for mobile */}
               {currentContextualLinks.length > 0 && (
                 <>
                   <div className="border-t border-gray-600 my-2" />
@@ -204,7 +206,7 @@ export function Navbar() {
                 </>
               )}
 
-              {/* Auth buttons */}
+              {/* mobile logout */}
               <div className="mt-4 border-t border-gray-600 pt-4 flex gap-2">
                 {user ? (
                   <Button

@@ -15,7 +15,7 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
+    
       <AuthProvider>
         <App />
         <ToastContainer 
@@ -26,6 +26,6 @@ createRoot(rootElement).render(
           pauseOnHover
         />
       </AuthProvider>
-    </BrowserRouter>
+    
   </StrictMode>,
 )
