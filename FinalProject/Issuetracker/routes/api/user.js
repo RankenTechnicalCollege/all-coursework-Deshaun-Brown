@@ -354,7 +354,7 @@ router.post('/sign-up/email', async (req, res) => {
 });
 
 // POST /api/users/sign-in/email - Validate and forward to Better Auth
-router.post('/api/users/sign-in/email', async (req, res) => {
+router.post('/sign-in/email', async (req, res) => {
   try {
     const response = await axios.post(
       'http://localhost:8080/api/auth/sign-in/email',

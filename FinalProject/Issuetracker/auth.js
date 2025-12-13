@@ -8,7 +8,7 @@ const client = await getClient();
 const db = await getDatabase();
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 8080}`,
+baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 8080}/api/auth`,
   trustedOrigins: [
     `http://localhost:${process.env.PORT || 8080}`,
     "http://localhost:3000",
@@ -27,6 +27,10 @@ export const auth = betterAuth({
       enabled: true, // Enable caching session in cookie (default: `false`)    
       maxAge: 300 // 5 minutes
     },
+    cookie: {
+    sameSite: "lax",
+    secure: false, // true only in HTTPS prod
+  },
   },
   user: {
     additionalFields: {
