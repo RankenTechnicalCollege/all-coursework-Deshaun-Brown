@@ -21,50 +21,50 @@ export function BugList() {
   }, [sortBy]);
 
   const fetchBugs = async () => {
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      const base = import.meta.env.VITE_API_URL
-      const params = new URLSearchParams({
-        sortBy: sortBy,
-        pageSize: "1000" // Fetch more bugs at once
-      });
-      
-      const res = await fetch(`${base}/api/bugs?${params}`, {
+  try {
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+    const params = new URLSearchParams({
+      sortBy,
+      pageSize: "1000",
+    });
+
+    const res = await fetch(
+      `${base}/api/bugs?${params.toString()}`,
+      {
         credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to fetch bugs (${res.status})`);
       }
+    );
 
-      const data: Bug[] | { bugs: Bug[] } = await res.json();
-      const bugsList = Array.isArray(data) ? data : data?.bugs || [];
-
-      // Normalize timestamps
-const safeDate = (val: string | undefined | number) =>
-  val ? new Date(val).toISOString() : new Date().toISOString();
-
-const normalized = bugsList.map((bug) => ({
-  ...bug,
-  createdAt: safeDate(bug.createdAt ?? 0),
-  updatedAt: safeDate(bug.updatedAt ?? 0),
-}));
-
-
-
-      setBugs(normalized);
-    } 
-    
-      catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to load bugs";
-      setError(msg);
-      showError(msg);
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch bugs (${res.status})`);
     }
-  };
+
+    const data: Bug[] | { bugs: Bug[] } = await res.json();
+    const bugsList = Array.isArray(data) ? data : data?.bugs ?? [];
+
+    const safeDate = (val?: string | number) =>
+      val ? new Date(val).toISOString() : new Date().toISOString();
+
+    const normalized = bugsList.map((bug) => ({
+      ...bug,
+      createdAt: safeDate(bug.createdAt),
+      updatedAt: safeDate(bug.updatedAt),
+    }));
+
+    setBugs(normalized);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to load bugs";
+    setError(msg);
+    showError(msg);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleEdit = (bugId: string) => {
     navigate(`/bug/${bugId}`);
@@ -76,7 +76,8 @@ const normalized = bugsList.map((bug) => ({
     setDeletingId(bugId);
 
     try {
-      const base = import.meta.env.VITE_API_URL 
+      const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
       const res = await fetch(`${base}/api/bugs/${bugId}`, {
         method: "DELETE",
         credentials: "include",

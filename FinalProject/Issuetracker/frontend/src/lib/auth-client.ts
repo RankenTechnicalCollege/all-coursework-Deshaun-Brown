@@ -43,8 +43,9 @@ export interface AuthResponse {
 
 export async function signIn(payload: SignInPayload): Promise<AuthResponse> {
   try {
-    const response = await api.post("/users/sign-in/email", payload);
-    return { success: true, data: response.data };
+    await api.post("/api/auth/sign-in/email", payload);
+    const sessionData = await getSession();
+    return { success: true, data: sessionData };
   } catch (err: any) {
     const msg = parseError(err);
     return { success: false, error: { message: msg } };
@@ -53,8 +54,9 @@ export async function signIn(payload: SignInPayload): Promise<AuthResponse> {
 
 export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
   try {
-    const response = await api.post("/users/sign-up/email", payload);
-    return { success: true, data: response.data };
+    await api.post("/api/auth/sign-up/email", payload);
+    const sessionData = await getSession();
+    return { success: true, data: sessionData };
   } catch (err: any) {
     const msg = parseError(err);
     return { success: false, error: { message: msg } };
@@ -63,7 +65,7 @@ export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
 
 export async function signOut(): Promise<void> {
   try {
-    await api.post("/users/sign-out");
+    await api.post("/api/auth/sign-out");
   } catch (err) {
     throw new Error(parseError(err));
   }
@@ -71,7 +73,7 @@ export async function signOut(): Promise<void> {
 
 export async function getSession() {
   try {
-    const { data } = await api.get("/users/me");
+    const { data } = await api.get("/api/get-session");
     return data;
   } catch {
     return null;

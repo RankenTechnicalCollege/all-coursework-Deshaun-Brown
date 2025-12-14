@@ -22,16 +22,18 @@ baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 
     enabled: true,
   },
   session: {
-    expiresIn: 300, // 5 minutes
-    cookieCache: {
-      enabled: true, // Enable caching session in cookie (default: `false`)    
-      maxAge: 300 // 5 minutes
-    },
-    cookie: {
-    sameSite: "lax",
-    secure: false, // true only in HTTPS prod
+  expiresIn: 300,
+  cookieCache: {
+    enabled: true,
+    maxAge: 300,
   },
+  cookie: {
+    sameSite: "lax",   // ✅ REQUIRED
+    secure: false,     // ✅ LOCAL DEV
+    httpOnly: true,
+    path: "/",
   },
+},
   user: {
     additionalFields: {
       role: {

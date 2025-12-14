@@ -45,10 +45,19 @@ app.use(cors({
 app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
 
-app.get('/api/get-session', (req, res) => {
-  // return session data or placeholder
-  res.redirect(307, '/api/auth/session');
+app.get('/api/get-session', async (req, res) => {
+  // Get session from Better Auth
+  try {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session || !session.user) {
+      return res.status(401).json({ error: "No session" });
+    }
+    res.json(session);
+  } catch (err) {
+    res.status(401).json({ error: "No session" });
+  }
 });
+
 
 // Help Postman by defaulting Origin in dev (Better Auth requires Origin)
 app.use('/api/auth', (req, _res, next) => {

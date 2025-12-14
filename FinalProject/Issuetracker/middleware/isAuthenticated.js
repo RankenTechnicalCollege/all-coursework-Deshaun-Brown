@@ -6,9 +6,12 @@ const debugAuth = debug("app:isAuthenticated");
 
 export async function isAuthenticated(req, res, next) {
   try {
+    // Get session from Better Auth using the cookies from the request
     const session = await auth.api.getSession({ headers: req.headers });
 
-    if (!session) {
+    // Better Auth returns { session, user } or null
+    if (!session || !session.user) {
+      debugAuth("No valid session found in cookies");
       return res.status(401).json({
         error: "Unauthorized",
         message: "You must be logged in to access this resource",
@@ -19,10 +22,13 @@ export async function isAuthenticated(req, res, next) {
 
     // Fetch full user with role from database
     const db = await connect();
-    const fullUser = await db.collection("users").findOne(
-      { email: session.user.email },
-      { projection: { password: 0 } }
-    );
+
+    const fullUser =
+  (await db.collection("users").findOne(
+    { email: session.user.email },
+    { projection: { password: 0 } }
+  )) ?? session.user;
+
 
     debugAuth(`Full user from DB for ${session.user.email}:`, fullUser);
 
