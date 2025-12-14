@@ -18,8 +18,8 @@ export function UserList() {
     setIsLoading(true);
     setError("");
     try {
-      const base = import.meta.env.VITE_API_URL ;
-      const response = await fetch(`${base}/users`, {
+      const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+      const response = await fetch(`${base}/api/users`, {
         credentials: "include",
       });
 

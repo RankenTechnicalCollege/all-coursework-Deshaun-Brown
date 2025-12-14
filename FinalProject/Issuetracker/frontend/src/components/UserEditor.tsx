@@ -72,8 +72,8 @@ export function UserEditor({ userId: propUserId, onSave, onCancel }: UserEditorP
       setIsFetching(true);
       setBackendError("");
       try {
-        const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-        const res = await fetch(`${base}/users/${userId}`, { credentials: "include" });
+        const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+        const res = await fetch(`${base}/api/users/${userId}`, { credentials: "include" });
         if (!res.ok) throw new Error(`Failed to load user (${res.status})`);
         const data: User = await res.json();
         setFormData({
