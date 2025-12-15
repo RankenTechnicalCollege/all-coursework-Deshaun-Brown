@@ -199,7 +199,7 @@ router.get('/:bugId', isAuthenticated, requirePermission('canViewData'), async (
 // POST /api/bug/new - Create a new bug (canCreateBug required)
 router.post('/new', isAuthenticated, requirePermission('canCreateBug'), async (req, res) => {
   try {
-    debugBug('POST /api/bugs/new called');
+    debugBug('POST /api/bug/new called');
     
     // Validate request body with Joi
     const validateResult = createBugSchema.validate(req.body);
@@ -251,7 +251,7 @@ router.post('/new', isAuthenticated, requirePermission('canCreateBug'), async (r
 router.patch('/:bugId', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId} called`);
+    debugBug(`PATCH /api/bug/${bugId} called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {
@@ -338,7 +338,7 @@ router.patch('/:bugId', isAuthenticated, async (req, res) => {
 router.patch('/:bugId/classify', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId}/classify called`);
+    debugBug(`PATCH /api/bug/${bugId}/classify called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {
@@ -417,7 +417,7 @@ router.patch('/:bugId/classify', isAuthenticated, async (req, res) => {
 router.patch('/:bugId/assign', isAuthenticated, async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId}/assign called`);
+    debugBug(`PATCH /api/bug/${bugId}/assign called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {
@@ -496,7 +496,7 @@ router.patch('/:bugId/assign', isAuthenticated, async (req, res) => {
 router.patch('/:bugId/close', isAuthenticated, requirePermission('canCloseAnyBug'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugBug(`PATCH /api/bugs/${bugId}/close called`);
+    debugBug(`PATCH /api/bug/${bugId}/close called`);
     
     // Validate ObjectId
     if (!isValidId(bugId)) {

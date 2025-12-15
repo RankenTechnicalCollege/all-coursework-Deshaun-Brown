@@ -23,7 +23,7 @@ const createCommentSchema = joi.object({
 router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugComment(`GET /api/bugs/${bugId}/comments called`);
+    debugComment(`GET /api/bug/${bugId}/comments called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -59,7 +59,7 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
 router.get('/:commentId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId, commentId } = req.params;
-    debugComment(`GET /api/bugs/${bugId}/comments/${commentId} called`);
+    debugComment(`GET /api/bug/${bugId}/comments/${commentId} called`);
     
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
@@ -98,7 +98,7 @@ router.get('/:commentId', isAuthenticated, requirePermission('canViewData'), asy
 router.post('/', isAuthenticated, requirePermission('canAddComments'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugComment(`POST /api/bugs/${bugId}/comments called`);
+    debugComment(`POST /api/bug/${bugId}/comments called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {

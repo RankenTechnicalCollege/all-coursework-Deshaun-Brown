@@ -28,7 +28,7 @@ const updateTestSchema = joi.object({
 router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`GET /api/bugs/${bugId}/tests called`);
+    debugTest(`GET /api/bug/${bugId}/tests called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -59,7 +59,7 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
 router.get('/:testId', isAuthenticated, requirePermission('canViewData'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`GET /api/bugs/${bugId}/tests/${testId} called`);
+    debugTest(`GET /api/bug/${bugId}/tests/${testId} called`);
     
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
@@ -99,7 +99,7 @@ router.get('/:testId', isAuthenticated, requirePermission('canViewData'), async 
 router.post('/', isAuthenticated, requirePermission('canAddTestCase'), async (req, res) => {
   try {
     const { bugId } = req.params;
-    debugTest(`POST /api/bugs/${bugId}/tests called`);
+    debugTest(`POST /api/bug/${bugId}/tests called`);
     
     // Validate bugId
     if (!isValidId(bugId)) {
@@ -167,7 +167,7 @@ router.post('/', isAuthenticated, requirePermission('canAddTestCase'), async (re
 router.patch('/:testId', isAuthenticated, requirePermission('canEditTestCase'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`PATCH /api/bugs/${bugId}/tests/${testId} called`);
+    debugTest(`PATCH /api/bug/${bugId}/tests/${testId} called`);
     
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
@@ -245,7 +245,7 @@ router.patch('/:testId', isAuthenticated, requirePermission('canEditTestCase'), 
 router.delete('/:testId', isAuthenticated, requirePermission('canDeleteTestCase'), async (req, res) => {
   try {
     const { bugId, testId } = req.params;
-    debugTest(`DELETE /api/bugs/${bugId}/tests/${testId} called`);
+    debugTest(`DELETE /api/bug/${bugId}/tests/${testId} called`);
     // Validate bugId ObjectId
     if (!isValidId(bugId)) {
       debugTest(`Invalid bugId ObjectId: ${bugId}`);

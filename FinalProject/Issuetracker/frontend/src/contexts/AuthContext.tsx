@@ -19,19 +19,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load session on first load
   useEffect(() => {
-  const load = async () => {
-    const session = await getSession();
+    let mounted = true;
 
-    if (session?.user) {
-      setUser(session.user);   // <-- FIXED
-    } else {
-      setUser(null);
-    }
+    getSession().then((session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    setLoading(false);
-  };
-  load();
-}, []);
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // ---- SIGN IN ----
   const signIn = async (formData: any) => {

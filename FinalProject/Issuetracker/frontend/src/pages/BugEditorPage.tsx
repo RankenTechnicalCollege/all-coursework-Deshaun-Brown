@@ -30,7 +30,7 @@ export function BugEditorPage() {
     setIsLoading(true);
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const response = await fetch(`${base}/api/bugs/${bugId}`, { 
+      const response = await fetch(`${base}/api/bug/${bugId}`, { 
         credentials: 'include' 
       });
       
@@ -58,8 +58,8 @@ export function BugEditorPage() {
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
       const endpoint = bug?._id 
-        ? `${base}/api/bugs/${bug._id}`
-        : `${base}/api/bugs`;
+        ? `${base}/api/bug/${bug._id}`
+        : `${base}/api/bug`;
       const method = bug?._id ? 'PUT' : 'POST';
       
       const response = await fetch(endpoint, {
@@ -133,7 +133,7 @@ export function BugEditorPage() {
     if (!bugId || !commentText.trim()) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bugs/${bugId}/comments`, {
+      const res = await fetch(`${base}/api/bug/${bugId}/comments`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -155,7 +155,7 @@ export function BugEditorPage() {
     if (!bugId || !classification) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bugs/${bugId}/classify`, {
+      const res = await fetch(`${base}/api/bug/${bugId}/classify`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -174,7 +174,7 @@ export function BugEditorPage() {
     if (!bugId || !assignedUserId || !assignedUserName) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bugs/${bugId}/assign`, {
+      const res = await fetch(`${base}/api/bug/${bugId}/assign`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -194,7 +194,7 @@ export function BugEditorPage() {
     try {
       const closed = status === "Closed";
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bugs/${bugId}/close`, {
+      const res = await fetch(`${base}/api/bug/${bugId}/close`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

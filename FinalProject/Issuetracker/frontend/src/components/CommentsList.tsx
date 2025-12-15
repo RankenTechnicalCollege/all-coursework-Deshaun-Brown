@@ -25,7 +25,7 @@ export function CommentsList({ bugId }: CommentsListProps) {
       setError("");
       try {
         const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-        const res = await fetch(`${base}/api/bugs/${bugId}/comments`, {
+        const res = await fetch(`${base}/api/bug/${bugId}/comments`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error(`Failed to fetch comments (${res.status})`);
