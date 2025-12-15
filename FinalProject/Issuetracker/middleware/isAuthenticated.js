@@ -7,7 +7,10 @@ const debugAuth = debug("app:isAuthenticated");
 export async function isAuthenticated(req, res, next) {
   try {
     // Get session from Better Auth using the cookies from the request
-    const session = await auth.api.getSession({ headers: req.headers });
+    // Better Auth expects the raw cookie header, so pass headers directly
+    const session = await auth.api.getSession({ 
+      headers: req.headers
+    });
 
     // Better Auth returns { session, user } or null
     if (!session || !session.user) {

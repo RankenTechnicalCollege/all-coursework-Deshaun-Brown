@@ -1,6 +1,7 @@
 import express from 'express';
 import debug from 'debug';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { toNodeHandler } from 'better-auth/node';
@@ -20,6 +21,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Always-on request 5xx logger (prints even if DEBUG is not enabled)
 app.use((req, res, next) => {
@@ -48,12 +50,17 @@ app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 app.get('/api/get-session', async (req, res) => {
   // Get session from Better Auth
   try {
-    const session = await auth.api.getSession({ headers: req.headers });
+    debugServer('get-session: cookies=' + (req.headers.cookie ? 'yes' : 'no'));
+    const session = await auth.api.getSession({ 
+      headers: req.headers
+    });
+    debugServer('get-session: result=' + (session?.user ? 'authenticated' : 'not authenticated'));
     if (!session || !session.user) {
       return res.status(401).json({ error: "No session" });
     }
     res.json(session);
   } catch (err) {
+    debugServer('get-session error: ' + err.message);
     res.status(401).json({ error: "No session" });
   }
 });

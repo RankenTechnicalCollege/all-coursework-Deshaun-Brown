@@ -2,24 +2,38 @@ import { useEffect, useState } from "react";
 import { showError } from "@/lib/utils";
 import type { User } from "@/types/user";
 import { UserListItem } from "./UserListItem";
-import { useAuth } from "@/contexts/AuthContext";
+import type { UserSearchFilters } from "./UserSearchInterface";
 
-export function UserList() {
+interface UserListProps {
+  filters: UserSearchFilters;
+}
+
+export function UserList({ filters }: UserListProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  // Fetch users on component mount
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters)]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (nextFilters: UserSearchFilters) => {
     setIsLoading(true);
     setError("");
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const response = await fetch(`${base}/api/users`, {
+      const params = new URLSearchParams();
+      if (nextFilters.keywords.trim()) params.set("keywords", nextFilters.keywords.trim());
+      if (nextFilters.role) params.set("role", nextFilters.role);
+      if (nextFilters.maxAge) params.set("maxAge", nextFilters.maxAge);
+      if (nextFilters.minAge) params.set("minAge", nextFilters.minAge);
+      if (nextFilters.sortBy) params.set("sortBy", nextFilters.sortBy);
+
+      const query = params.toString();
+      const url = query ? `${base}/api/users?${query}` : `${base}/api/users`;
+
+      const response = await fetch(url, {
         credentials: "include",
       });
 

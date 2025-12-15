@@ -40,8 +40,12 @@ router.get('/', isAuthenticated, requirePermission('canViewData'), async (req, r
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
     
-    // Return the comments array (or empty array if no comments)
-    const comments = bug.comments || [];
+    // Return the comments array sorted oldest -> newest
+    const comments = (bug.comments || []).slice().sort((a, b) => {
+      const ad = new Date(a?.dateTime || 0).getTime();
+      const bd = new Date(b?.dateTime || 0).getTime();
+      return ad - bd;
+    });
     debugComment(`Found ${comments.length} comments for bug ${bugId}`);
     
     res.json(comments);

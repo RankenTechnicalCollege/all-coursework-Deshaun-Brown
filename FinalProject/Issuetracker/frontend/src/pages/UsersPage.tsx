@@ -1,6 +1,17 @@
+import { useState } from "react";
 import { UserList } from "@/components/UserList";
+import {UserSearchInterface,} from "@/components/UserSearchInterface";
+import type { UserSearchFilters,} from "@/components/UserSearchInterface";
 
 export function UsersPage() {
+  const [filters, setFilters] = useState<UserSearchFilters>({
+    keywords: "",
+    role: "",
+    maxAge: "",
+    minAge: "",
+    sortBy: "name",
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,7 +20,8 @@ export function UsersPage() {
           Manage team members and their roles
         </p>
       </div>
-      <UserList />
+      <UserSearchInterface onSearch={setFilters} />
+      <UserList filters={filters} />
     </div>
   );
 }

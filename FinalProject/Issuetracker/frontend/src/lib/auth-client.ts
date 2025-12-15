@@ -22,13 +22,15 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Response interceptor to handle session expiration (401 errors)
 api.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      // Session expired - redirect to login
-      window.location.href = "/login";
+      // Let the UI decide what to do
+      return Promise.reject({
+        ...error,
+        isAuthError: true,
+      });
     }
     return Promise.reject(error);
   }
