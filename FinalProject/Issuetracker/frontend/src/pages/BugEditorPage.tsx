@@ -23,6 +23,30 @@ export function BugEditorPage() {
       fetchBug();
     }
   }, [bugId]);
+   useEffect(() => {
+    // Initialize selects from bug
+    if (bug) {
+      setClassification(bug.classification ?? "");
+      setStatus(bug.closed ? "Closed" : "Open");
+      setAssignedUserId((bug as any).assignedToUserId ?? "");
+      setAssignedUserName((bug as any).assignedToUserName ?? "");
+    }
+  }, [bug]);
+
+  useEffect(() => {
+    // Load users for assignment select
+    const loadUsers = async () => {
+      try {
+        const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+        const res = await fetch(`${base}/api/users`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(data);
+        }
+      } catch {}
+    };
+    loadUsers();
+  }, []);
 
   const fetchBug = async () => {
     if (!bugId) return;
@@ -30,7 +54,7 @@ export function BugEditorPage() {
     setIsLoading(true);
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const response = await fetch(`${base}/api/bug/${bugId}`, { 
+      const response = await fetch(`${base}/api/bugs/${bugId}`, { 
         credentials: 'include' 
       });
       
@@ -58,9 +82,9 @@ export function BugEditorPage() {
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
       const endpoint = bug?._id 
-        ? `${base}/api/bug/${bug._id}`
-        : `${base}/api/bug`;
-      const method = bug?._id ? 'PUT' : 'POST';
+        ? `${base}/api/bugs/${bug._id}`
+        : `${base}/api/bugs/new`;
+      const method = bug?._id ? 'PATCH' : 'POST';
       
       const response = await fetch(endpoint, {
         method,
@@ -104,36 +128,13 @@ export function BugEditorPage() {
     );
   }
 
-  useEffect(() => {
-    // Initialize selects from bug
-    if (bug) {
-      setClassification(bug.classification ?? "");
-      setStatus(bug.closed ? "Closed" : "Open");
-      setAssignedUserId((bug as any).assignedToUserId ?? "");
-      setAssignedUserName((bug as any).assignedToUserName ?? "");
-    }
-  }, [bug]);
-
-  useEffect(() => {
-    // Load users for assignment select
-    const loadUsers = async () => {
-      try {
-        const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-        const res = await fetch(`${base}/api/users`, { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(data);
-        }
-      } catch {}
-    };
-    loadUsers();
-  }, []);
+ 
 
   const postComment = async () => {
     if (!bugId || !commentText.trim()) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bug/${bugId}/comments`, {
+      const res = await fetch(`${base}/api/bugs/${bugId}/comments`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -155,7 +156,7 @@ export function BugEditorPage() {
     if (!bugId || !classification) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bug/${bugId}/classify`, {
+      const res = await fetch(`${base}/api/bugs/${bugId}/classify`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -174,7 +175,7 @@ export function BugEditorPage() {
     if (!bugId || !assignedUserId || !assignedUserName) return;
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bug/${bugId}/assign`, {
+      const res = await fetch(`${base}/api/bugs/${bugId}/assign`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -194,7 +195,7 @@ export function BugEditorPage() {
     try {
       const closed = status === "Closed";
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bug/${bugId}/close`, {
+      const res = await fetch(`${base}/api/bugs/${bugId}/close`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

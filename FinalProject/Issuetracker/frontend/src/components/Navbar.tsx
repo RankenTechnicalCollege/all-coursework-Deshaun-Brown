@@ -31,8 +31,8 @@ const navItems: NavItem[] = [
 
 const contextualLinks: Record<string, NavItem[]> = {
   "/bugs": [
-    { to: "/bug/new", label: "New Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
-    { to: "/bug/report", label: "Report Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
+    { to: "/bugs/new", label: "New Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
+    { to: "/bugs/report", label: "Report Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
   ],
   "/users": [
     { to: "/users/new", label: "Add User", roles: ["TM"], requiresAuth: true },

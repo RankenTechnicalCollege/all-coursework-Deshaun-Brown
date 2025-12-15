@@ -42,14 +42,15 @@ export function BugListItem({
   const status = (item.status ?? "open").toLowerCase().replace(/_/g, "-");
   const createdBy = item.createdBy ?? item.authorOfBug ?? "Unknown";
   const assignedTo = item.assignedTo ?? item.assignedToUserName;
-  const bugLink = `/bug/${item._id}`;
+  const bugLink = `/bugs/${item._id}`;
 
   const timeAgo = item.createdAt 
     ? moment(item.createdAt).fromNow()
     : "—";
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+    <Card className="group relative overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+      <CardContent className="p-6">
       <div className="flex items-start justify-between gap-4">
         {/* Main Content */}
         <Link
@@ -101,8 +102,8 @@ export function BugListItem({
 
             {assignedTo && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                  {assignedTo[0]?.toUpperCase() || "?"}
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <User className="h-3.5 w-3.5" />
                 </div>
                 <span className="text-muted-foreground">{assignedTo}</span>
               </div>
@@ -147,7 +148,9 @@ export function BugListItem({
 
       {/* Hover Effect Bar */}
       <div className="absolute bottom-0 left-0 h-1 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
-    </div>
+      
+      </CardContent>
+    </Card>
   );
 }
 

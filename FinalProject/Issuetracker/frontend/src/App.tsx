@@ -15,37 +15,43 @@ import { RegisterPage } from "@/pages/RegisterPage";
 function App() {
   return (
     <BrowserRouter>
-  <AuthProvider>
-    <Routes>
+      <AuthProvider>
+        <Routes>
+          {/* PUBLIC LAYOUT */}
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
 
-      {/* PUBLIC LAYOUT */}
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-      </Route>
+          {/* PROTECTED ROUTES */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            {/* Bug routes */}
+            <Route path="/bugs" element={<BugsPage />} />
+            <Route path="/bugs/new" element={<BugEditorPage />} />
+            <Route path="/bugs/:bugId" element={<BugEditorPage />} />
+            <Route path="/bugs/report" element={<ReportBugPage />} />
 
-      {/* PROTECTED ROUTES */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/bugs" element={<BugsPage />} />
-        <Route path="/bug/new" element={<BugEditorPage />} />
-        <Route path="/bug/:bugId" element={<BugEditorPage />} />
-        <Route path="/users" element={<UsersPage />} />
-      </Route>
+            {/* User routes */}
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/new" element={<UserEditorPage />} />
+            <Route path="/users/:userId" element={<UserEditorPage />} />
+          </Route>
 
-      {/* AUTH */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+          {/* AUTH */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-    </Routes>
-  </AuthProvider>
-</BrowserRouter>
-
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

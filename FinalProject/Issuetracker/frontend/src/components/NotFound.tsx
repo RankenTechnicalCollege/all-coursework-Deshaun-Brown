@@ -20,10 +20,10 @@ export function NotFound() {
               <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/bug/list">View Bugs</Link>
+              <Link to="/bugs">View Bugs</Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/user/list">View Users</Link>
+              <Link to="/users">View Users</Link>
             </Button>
           </div>
 

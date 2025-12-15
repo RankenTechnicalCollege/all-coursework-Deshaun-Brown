@@ -33,12 +33,12 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/bug/list" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/bugs" className="text-muted-foreground hover:text-primary transition-colors">
                   Bug Tracker
                 </Link>
               </li>
               <li>
-                <Link to="/user/list" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/users" className="text-muted-foreground hover:text-primary transition-colors">
                   User Management
                 </Link>
               </li>

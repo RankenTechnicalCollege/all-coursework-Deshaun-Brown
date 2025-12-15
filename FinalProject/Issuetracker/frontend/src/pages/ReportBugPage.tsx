@@ -36,7 +36,7 @@ export function ReportBugPage() {
 
     try {
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/bug/new`, {
+      const res = await fetch(`${base}/api/bugs/new`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -47,7 +47,7 @@ export function BugsPage() {
           <p className="text-muted-foreground mt-2">Manage and track all reported issues</p>
         </div>
         <Button 
-          onClick={() => navigate("/bug/new")}
+          onClick={() => navigate("/bugs/new")}
           className="gap-2"
         >
           <Plus className="h-4 w-4" />

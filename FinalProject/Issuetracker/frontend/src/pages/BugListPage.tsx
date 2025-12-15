@@ -33,7 +33,7 @@ export function BugListPage() {
           <p className="text-muted-foreground mt-2">Find and filter bugs with advanced search</p>
         </div>
         <Button 
-          onClick={() => navigate("/bug/new")}
+          onClick={() => navigate("/bugs/new")}
           className="gap-2"
         >
           <Plus className="h-4 w-4" />
