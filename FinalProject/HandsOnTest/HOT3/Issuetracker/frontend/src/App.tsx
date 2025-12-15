@@ -11,6 +11,9 @@ import { UsersPage } from "@/pages/UsersPage";
 import { UserEditorPage } from "@/pages/UserEditorPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ProfilePage } from "@/pages/ProfilePage";
+import { ProductsPage } from "@/pages/ProductsPage";
+import { ProductEditorPage } from "@/pages/ProductEditorPage";
 
 function App() {
   return (
@@ -41,6 +44,14 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/users/new" element={<UserEditorPage />} />
             <Route path="/users/:userId" element={<UserEditorPage />} />
+            
+            {/* Profile route */}
+            <Route path="/profile" element={<ProfilePage />} />
+            
+            {/* Product routes */}
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/new" element={<ProductEditorPage />} />
+            <Route path="/products/:productId" element={<ProductEditorPage />} />
           </Route>
 
           {/* AUTH */}

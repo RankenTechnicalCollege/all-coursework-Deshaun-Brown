@@ -25,6 +25,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: "/dashboard", label: "Home", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
   { to: "/bugs", label: "Bugs", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
+  { to: "/products", label: "Products", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
   { to: "/reports", label: "Reports", roles: ["BA", "PM", "TM"], requiresAuth: true },
   { to: "/users", label: "Users", roles: ["TM"], requiresAuth: true },
 ];
@@ -33,6 +34,9 @@ const contextualLinks: Record<string, NavItem[]> = {
   "/bugs": [
     { to: "/bugs/new", label: "New Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
     { to: "/bugs/report", label: "Report Bug", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
+  ],
+  "/products": [
+    { to: "/products/new", label: "New Product", roles: ["DEV", "QA", "BA", "PM", "TM"], requiresAuth: true },
   ],
   "/users": [
     { to: "/users/new", label: "Add User", roles: ["TM"], requiresAuth: true },
@@ -122,9 +126,16 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="text-sm text-gray-200">
-            {user.name} ({userRole})
-              </span>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-gray-200 hover:text-white hover:bg-white/10"
+              >
+                <Link to="/profile">
+                  {user.name} ({userRole})
+                </Link>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -208,25 +219,34 @@ export function Navbar() {
               )}
 
               {/* mobile logout */}
-              <div className="mt-4 border-t border-gray-600 pt-4 flex gap-2">
+              <div className="mt-4 border-t border-gray-600 pt-4 space-y-2">
                 {user ? (
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-gray-300 text-white hover:bg-white/10"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
+                  <>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-gray-300 text-white hover:bg-white/10"
+                    >
+                      <Link to="/profile">My Profile</Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full border-gray-300 text-white hover:bg-white/10"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button
                       asChild
                       variant="outline"
-                      className="flex-1 text-black hover:bg-gray-700/10"
+                      className="w-full text-black hover:bg-gray-700/10"
                     >
                       <Link to="/login">Login</Link>
                     </Button>
-                    <Button asChild className="flex-1 text-black">
+                    <Button asChild className="w-full text-black">
                       <Link to="/register">Sign up</Link>
                     </Button>
                   </>
