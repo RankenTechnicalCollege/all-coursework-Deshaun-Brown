@@ -1,157 +1,120 @@
-// src/components/forms/LoginForm.tsx
+"use client";
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
 
+// Zod schema
 const loginSchema = z.object({
-  email: z.email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required")
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
-
 export function LoginForm() {
+  const { signIn } = useAuth();
   const navigate = useNavigate();
-  const { signIn: authSignIn } = useAuth();
-
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: ""
-  });
-
-  const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
-  const [backendError, setBackendError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
-    setBackendError("");
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    setBackendError("");
 
-    const validation = loginSchema.safeParse(formData);
-    if (!validation.success) {
-      const fieldErrors: Partial<Record<keyof LoginFormData, string>> = {};
-      validation.error.issues.forEach((issue) => {
-        const field = issue.path[0] as keyof LoginFormData;
-        fieldErrors[field] = issue.message;
-      });
-
-      setErrors(fieldErrors);
-      const firstError = Object.values(fieldErrors).find(Boolean);
-      if (firstError) showError(firstError);
-      return;
+    const parsed = loginSchema.safeParse(formData);
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError = Object.values(fieldErrors).flat().find(Boolean);
+      return showError(firstError || "Validation failed");
     }
 
-    setIsLoading(true);
-
     try {
-      const result = await authSignIn(validation.data);
-
-      if (!result.success) {
-        const msg = result.error?.message || "Invalid email or password.";
-        setBackendError(msg);
-        showError(msg);
-        return;
-      }
-
+      setLoading(true);
+      const res = await signIn(parsed.data);
+      if (!res.success) return showError(res.error?.message || "Login failed");
       showSuccess("Login successful!");
-
-      const role = result.data?.role ?? "";
-      const redirectMap: Record<string, string> = {
-        TM: "/users",
-        PM: "/reports",
-        BA: "/reports",
-        DEV: "/bugs",
-        QA: "/bugs"
-      };
-
-      navigate(redirectMap[role] ?? "/dashboard");
-    } catch (err: any) {
-      showError(err.message || "Unexpected login error");
+      navigate("/dashboard");
+    } catch (err) {
+      showError((err as Error).message || "Unexpected error");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <Link to="/" className="flex items-center justify-center bg-gray-50">
-            <span className="text-lg font-semibold">IssueTracker</span>
-          </Link>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-8">
+      <Card className="w-full max-w-md shadow-2xl border-slate-700 bg-slate-950">
+        <CardHeader className="space-y-2 border-b border-slate-700 pb-6">
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg"
+              alt="Logo"
+              className="h-10 w-10 bg-gray-200 rounded"
+            />
+          </div>
+          <CardTitle className="text-2xl font-bold text-white text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center text-slate-400">
+            Sign in to IssueTracker and manage your issues
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {backendError && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
-                {backendError}
-              </div>
-            )}
-
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium text-slate-300">
                 Email Address
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
+                name="email"
+                placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 ${
-                  errors.email ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="you@example.com"
-                required
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium text-slate-300">
                 Password
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
+                name="password"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md bg-white text-gray-900 ${
-                  errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="••••••••"
-                required
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full bg-black text-white">
-              {isLoading ? "Signing in..." : "Sign In"}
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
+          </form>
 
-            <p className="text-sm text-center text-gray-600 mt-4">
+          <div className="mt-6 pt-6 border-t border-slate-700">
+            <p className="text-center text-slate-400 text-sm">
               Don't have an account?{" "}
-              <Link to="/register" className="text-blue-600 hover:underline font-medium">
+              <Link 
+                to="/register" 
+                className="text-blue-400 hover:text-blue-300 font-semibold transition"
+              >
                 Create one
               </Link>
             </p>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>

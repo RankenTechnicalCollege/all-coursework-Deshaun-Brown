@@ -441,6 +441,22 @@ router.patch('/:bugId/assign', isAuthenticated, async (req, res) => {
       debugBug(`Bug ${bugId} not found for assignment`);
       return res.status(404).json({ error: `Bug ${bugId} not found.` });
     }
+
+    // Validate target user exists and has correct role (DEV, BA, or QA)
+    const targetUser = isValidId(assignedToUserId) 
+      ? await db.collection('users').findOne({ _id: newId(assignedToUserId) })
+      : await db.collection('users').findOne({ email: assignedToUserName });
+    
+    if (!targetUser) {
+      debugBug(`Target user ${assignedToUserName} (${assignedToUserId}) not found`);
+      return res.status(404).json({ error: 'Target user not found' });
+    }
+
+    const allowedRoles = ['DEV', 'BA', 'QA'];
+    if (!allowedRoles.includes(targetUser.role)) {
+      debugBug(`Cannot assign bug to user with role ${targetUser.role} - only DEV, BA, QA allowed`);
+      return res.status(403).json({ error: `Bugs can only be assigned to Developers (DEV), Business Analysts (BA), or Quality Analysts (QA)` });
+    }
     
     // Check permissions
     const { getEffectivePermissions } = await import('../../middleware/roles.js');

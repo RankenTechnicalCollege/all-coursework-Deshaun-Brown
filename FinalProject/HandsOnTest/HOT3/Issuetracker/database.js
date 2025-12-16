@@ -29,6 +29,10 @@ async function connect() {
     await client.connect();
     _client = client;
     _db = client.db(dbName);
+    
+    console.log(`✅ MongoDB Connected Successfully!`);
+    console.log(`   Database: ${dbName}`);
+    console.log(`   Host: ${new URL(dbUrl).hostname}`);
     debugDb('Connected to MongoDB');
   }
   return _db;

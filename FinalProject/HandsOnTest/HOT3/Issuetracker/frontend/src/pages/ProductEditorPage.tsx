@@ -1,20 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { showError, showSuccess } from "@/lib/utils";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import type { Product } from "@/types/product";
-import { Package } from "lucide-react";
 
 export function ProductEditorPage() {
-  const { productId } = useParams<{ productId: string }>();
+  const { productId } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | undefined>();
-  const [isLoading, setIsLoading] = useState(!!productId);
-  const [isSaving, setIsSaving] = useState(false);
+  const isEditMode = productId && productId !== "new";
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -22,251 +21,234 @@ export function ProductEditorPage() {
     category: "",
     stock: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [fetchingProduct, setFetchingProduct] = useState(isEditMode);
 
   useEffect(() => {
-    if (productId) {
+    if (isEditMode) {
       fetchProduct();
     }
   }, [productId]);
 
   const fetchProduct = async () => {
-    if (!productId) return;
-    
-    setIsLoading(true);
     try {
+      setFetchingProduct(true);
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const response = await fetch(`${base}/api/products/${productId}`, { 
-        credentials: 'include' 
+      const response = await fetch(`${base}/api/products/${productId}`, {
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        if (response.status === 401) {
-          showError("Please log in to edit products.");
-          navigate("/login");
-          return;
-        }
-        throw new Error(`Failed to fetch product (${response.status})`);
+        throw new Error("Failed to fetch product");
       }
-      
-      const data = await response.json();
-      setProduct(data);
+
+      const product: Product = await response.json();
       setFormData({
-        name: data.name || "",
-        description: data.description || "",
-        price: data.price?.toString() || "",
-        category: data.category || "",
-        stock: data.stock?.toString() || "0",
+        name: product.name,
+        description: product.description || "",
+        price: product.price.toString(),
+        category: product.category || "",
+        stock: product.stock?.toString() || "",
       });
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to fetch product";
-      showError(errorMsg);
-      console.error("Fetch product error:", err);
+      showError(err instanceof Error ? err.message : "Failed to load product");
+      navigate("/products");
     } finally {
-      setIsLoading(false);
+      setFetchingProduct(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate
-    if (!formData.name.trim() || !formData.description.trim() || !formData.price || !formData.category.trim()) {
-      showError("Please fill in all required fields");
-      return;
+    if (!formData.name.trim()) {
+      return showError("Product name is required");
     }
-
-    const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
-      showError("Price must be a positive number");
-      return;
+    if (!formData.price || parseFloat(formData.price) < 0) {
+      return showError("Valid price is required");
     }
-
-    const stock = formData.stock ? parseInt(formData.stock) : 0;
-    if (isNaN(stock) || stock < 0) {
-      showError("Stock must be a non-negative number");
-      return;
-    }
-
-    setIsSaving(true);
 
     try {
+      setLoading(true);
       const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const endpoint = product?._id 
-        ? `${base}/api/products/${product._id}`
-        : `${base}/api/products/new`;
-      const method = product?._id ? 'PATCH' : 'POST';
-      
-      const response = await fetch(endpoint, {
+      const url = isEditMode
+        ? `${base}/api/products/${productId}`
+        : `${base}/api/products`;
+      const method = isEditMode ? "PATCH" : "POST";
+
+      const body = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: parseFloat(formData.price),
+        category: formData.category.trim(),
+        stock: formData.stock ? parseInt(formData.stock, 10) : 0,
+      };
+
+      const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          price,
-          category: formData.category.trim(),
-          stock,
-        })
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to save product (${response.status})`);
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save product");
       }
-      
-      const message = product?._id ? "Product updated successfully!" : "Product created successfully!";
-      showSuccess(message);
-      
-      setTimeout(() => {
-        navigate("/products");
-      }, 1500);
+
+      showSuccess(isEditMode ? "Product updated!" : "Product created!");
+      navigate("/products");
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to save product";
-      showError(errorMsg);
-      console.error("Save product error:", err);
+      showError(err instanceof Error ? err.message : "Failed to save product");
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate("/products");
+  const handleDelete = async () => {
+    if (!isEditMode) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      setDeleting(true);
+      const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+      const response = await fetch(`${base}/api/products/${productId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete product");
+      }
+
+      showSuccess("Product deleted successfully");
+      navigate("/products");
+    } catch (err) {
+      showError(err instanceof Error ? err.message : "Failed to delete product");
+    } finally {
+      setDeleting(false);
+    }
   };
 
-  // Loading state
-  if (isLoading && productId) {
+  if (fetchingProduct) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading product...</p>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-3xl flex items-center gap-2">
-              <Package className="h-8 w-8" />
-              {productId ? "Edit Product" : "Create Product"}
-            </CardTitle>
-            <CardDescription>
-              {productId ? "Update product information" : "Add a new product to your catalog"}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Enter product name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={isSaving}
-                  required
-                />
-              </div>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/products")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-3xl font-bold">
+          {isEditMode ? "Edit Product" : "Create Product"}
+        </h1>
+      </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Detailed product description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  disabled={isSaving}
-                  rows={4}
-                  required
-                />
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter product name"
+                required
+              />
+            </div>
 
-              {/* Price */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe the product"
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($) *</Label>
+                <Label htmlFor="price">Price *</Label>
                 <Input
                   id="price"
                   name="price"
                   type="number"
                   step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
+                  min="0"
                   value={formData.price}
                   onChange={handleChange}
-                  disabled={isSaving}
+                  placeholder="0.00"
                   required
                 />
               </div>
 
-              {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Input
-                  id="category"
-                  name="category"
-                  placeholder="e.g., Electronics, Clothing, Food"
-                  value={formData.category}
-                  onChange={handleChange}
-                  disabled={isSaving}
-                  required
-                />
-              </div>
-
-              {/* Stock */}
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
+                <Label htmlFor="stock">Stock</Label>
                 <Input
                   id="stock"
                   name="stock"
                   type="number"
                   min="0"
-                  placeholder="0"
                   value={formData.stock}
                   onChange={handleChange}
-                  disabled={isSaving}
+                  placeholder="0"
                 />
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1"
-                >
-                  {isSaving ? "Saving..." : (productId ? "Update Product" : "Create Product")}
-                </Button>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                placeholder="e.g., Electronics, Clothing"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? "Saving..." : isEditMode ? "Update Product" : "Create Product"}
+              </Button>
+              
+              {isEditMode && (
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="flex-1"
+                  variant="destructive"
+                  disabled={deleting}
+                  onClick={handleDelete}
+                  className="gap-2"
                 >
-                  Cancel
+                  <Trash2 className="h-4 w-4" />
+                  {deleting ? "Deleting..." : "Delete"}
                 </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

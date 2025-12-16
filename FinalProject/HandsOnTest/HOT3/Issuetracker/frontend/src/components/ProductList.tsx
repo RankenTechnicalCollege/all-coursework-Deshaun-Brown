@@ -1,18 +1,16 @@
+
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { showError, showSuccess } from "@/lib/utils";
+import { showError } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { ProductListItem } from "@/components/ProductListItem";
 import { Search } from "lucide-react";
 
 export function ProductList() {
-  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchName, setSearchName] = useState("");
 
   useEffect(() => {
@@ -51,36 +49,6 @@ export function ProductList() {
     }
   };
 
-  const handleEdit = (productId: string) => {
-    navigate(`/products/${productId}`);
-  };
-
-  const handleDelete = async (productId: string) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
-
-    setDeletingId(productId);
-
-    try {
-      const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const res = await fetch(`${base}/api/products/${productId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to delete product (${res.status})`);
-      }
-
-      setProducts((prev) => prev.filter((p) => p._id !== productId));
-      showSuccess("Product deleted successfully.");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to delete product";
-      showError(msg);
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchProducts();
@@ -89,12 +57,9 @@ export function ProductList() {
   // LOADING UI
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div />
-          <Button onClick={() => navigate("/products/new")}>Create Product</Button>
-        </div>
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Loading products...</p>
         </div>
       </div>
@@ -104,19 +69,13 @@ export function ProductList() {
   // ERROR UI
   if (error) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div />
-          <Button onClick={() => navigate("/products/new")}>Create Product</Button>
-        </div>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="text-red-600 text-4xl">⚠️</div>
-            <p className="text-red-600 font-medium">{error}</p>
-            <Button variant="outline" onClick={fetchProducts}>
-              Try Again
-            </Button>
-          </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="text-red-600 text-4xl">⚠️</div>
+          <p className="text-red-600 font-medium">{error}</p>
+          <Button variant="outline" onClick={fetchProducts}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -125,19 +84,12 @@ export function ProductList() {
   // EMPTY UI
   if (products.length === 0) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div />
-          <Button onClick={() => navigate("/products/new")}>Create Product</Button>
-        </div>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="text-4xl">📦</div>
-            <p className="text-muted-foreground text-lg">No products found.</p>
-            <Button onClick={() => navigate("/products/new")}>
-              Create the first product
-            </Button>
-          </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="text-4xl">📦</div>
+          <p className="text-muted-foreground text-lg">
+            {searchName ? "No products match your search." : "No products found."}
+          </p>
         </div>
       </div>
     );
@@ -163,7 +115,6 @@ export function ProductList() {
             variant="outline" 
             onClick={() => {
               setSearchName("");
-              fetchProducts();
             }}
           >
             Clear
@@ -182,12 +133,7 @@ export function ProductList() {
             className="animate-fade-in"
             style={{ animationDelay: `${index * 0.05}s` }}
           >
-            <ProductListItem
-              item={product}
-              onEdit={() => handleEdit(product._id)}
-              onDelete={() => handleDelete(product._id)}
-              isDeleting={deletingId === product._id}
-            />
+            <ProductListItem item={product} />
           </div>
         ))}
       </div>

@@ -8,6 +8,7 @@ export async function isAuthenticated(req, res, next) {
   try {
     // Get session from Better Auth using the cookies from the request
     // Better Auth expects the raw cookie header, so pass headers directly
+    const authInstance = await auth();
     const session = await auth.api.getSession({ 
       headers: req.headers
     });
