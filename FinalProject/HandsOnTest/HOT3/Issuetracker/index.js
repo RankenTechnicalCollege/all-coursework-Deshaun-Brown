@@ -12,7 +12,6 @@ import { UserRouter } from './routes/api/user.js';
 import { BugRouter } from './routes/api/bug.js';
 import { CommentRouter } from './routes/api/comment.js';
 import { TestRouter } from './routes/api/test.js';
-import { ProductRouter } from './routes/api/product.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +94,6 @@ app.use('/api/bugs', isAuthenticated, BugRouter);
 app.use('/api/bugs/:bugId/comments', isAuthenticated, CommentRouter);
 app.use('/api/bugs/:bugId/testCases', isAuthenticated, TestRouter);
 app.use('/api/bugs/:bugId/tests', isAuthenticated, TestRouter);
-app.use('/api/products', isAuthenticated, ProductRouter);
 
 app.get('/', (req, res) => {
   res.redirect('/dashboard');
