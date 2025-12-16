@@ -1,293 +1,171 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { z } from "zod";
+"use client";
+
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showError, showSuccess } from "@/lib/utils";
-import { signUp } from "@/lib/auth-client";
+import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
 
-// Zod schema for validation
+// Zod schema
 const registerSchema = z.object({
-  fullName: z
-    .string()
-    .min(1, "Full name is required")
-    .min(2, "Full name must be at least 2 characters")
-    .max(50, "Full name must be less than 50 characters")
-    .regex(/^[a-zA-Z\s]+$/, "Full name can only contain letters and spaces"),
-  
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address")
-    .max(100, "Email must be less than 100 characters"),
-  
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters")
-    .max(50, "Password must be less than 50 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  
-  confirmPassword: z
-    .string()
-    .min(1, "Please confirm your password"),
-
-  role: z
-    .string()
-    .min(1, "Please select a role")
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
+  name: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["DEV", "QA", "BA", "PM", "TM"], "Role is required"),
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
-
 export function RegisterForm() {
+  const { signUp } = useAuth();
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    role: ""
+    role: "DEV",
   });
-
-  const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
-  const [backendError, setBackendError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name as keyof RegisterFormData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
-    setBackendError("");
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    setBackendError("");
 
-    // Validate using Zod
-    const validation = registerSchema.safeParse(formData);
-
-    if (!validation.success) {
-      // Map Zod errors to field errors
-      const fieldErrors: Partial<Record<keyof RegisterFormData, string>> = {};
-      validation.error.issues.forEach(error => {
-        const field = error.path[0] as keyof RegisterFormData;
-        fieldErrors[field] = error.message;
-      });
-      setErrors(fieldErrors);
-      const firstError = Object.values(fieldErrors)[0];
-      if (firstError) showError(firstError);
-      return;
+    const parsed = registerSchema.safeParse(formData);
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError = Object.values(fieldErrors).flat().find(Boolean);
+      return showError(firstError || "Validation failed");
     }
-
-    setIsLoading(true);
 
     try {
-      const result = await signUp({
-        name: validation.data.fullName,  // map fullName to name
-        email: validation.data.email,
-        password: validation.data.password,
-        role: validation.data.role,
-      });
-
-      if (!result.success) {
-        const msg = result.error?.message || "Registration failed. Please try again.";
-        setBackendError(msg);
-        showError(msg);
-        setIsLoading(false);
-        return;
-      }
-
-      // Successful registration
-      const msg = "Registration successful! Welcome aboard!";
-      showSuccess(msg);
-      
-      // Clear form
-      setFormData({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        role: ""
-      });
-      
-      // Redirect to bugs/dashboard
-      setTimeout(() => navigate("/bugs"), 800);
+      setLoading(true);
+      const res = await signUp(parsed.data);
+      if (!res.success) return showError(res.error?.message || "Registration failed");
+      showSuccess("Registration successful!");
+      navigate("/dashboard");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "An unexpected error occurred during registration";
-      setBackendError(msg);
-      showError(msg);
+      showError((err as Error).message || "Unexpected error");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 py-8">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <Link to="/" className="flex items-center justify-center bg-gray-50">
-          <span className="text-lg font-semibold">IssueTracker</span>
-          </Link>
-          <CardTitle>Create Account</CardTitle>
-          <CardDescription>Register to start tracking bugs and issues</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Backend error message */}
-          {backendError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200 mb-4">
-              {backendError}
-            </div>
-          )}
+  const roleOptions = [
+    { value: "DEV", label: "Developer" },
+    { value: "QA", label: "QA Engineer" },
+    { value: "BA", label: "Business Analyst" },
+    { value: "PM", label: "Product Manager" },
+    { value: "TM", label: "Technical Manager" },
+  ];
 
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-8">
+      <Card className="w-full max-w-md shadow-2xl border-slate-700 bg-slate-950">
+        <CardHeader className="space-y-2 border-b border-slate-700 pb-6">
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg"
+              alt="Logo"
+              className="h-10 w-10 bg-gray-200 rounded"
+            />
+          </div>
+          <CardTitle className="text-2xl font-bold text-white text-center">Join IssueTracker</CardTitle>
+          <CardDescription className="text-center text-slate-400">
+            Create an account to start tracking and managing issues
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name field */}
             <div className="space-y-2">
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                Full Name <span className="text-red-600">*</span>
+              <label htmlFor="name" className="text-sm font-medium text-slate-300">
+                Full Name
               </label>
               <input
-                id="fullName"
-                name="fullName"
+                id="name"
                 type="text"
-                value={formData.fullName}
+                name="name"
+                placeholder="John Doe"
+                value={formData.name}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.fullName ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="Jane Doe"
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
-              {errors.fullName && (
-                <p className="text-sm text-red-600">{errors.fullName}</p>
-              )}
             </div>
 
-            {/* Email field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email Address <span className="text-red-600">*</span>
+              <label htmlFor="email" className="text-sm font-medium text-slate-300">
+                Email Address
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
+                name="email"
+                placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.email ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="you@example.com"
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email}</p>
-              )}
             </div>
 
-            {/* Password field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password <span className="text-red-600">*</span>
+              <label htmlFor="password" className="text-sm font-medium text-slate-300">
+                Password
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
+                name="password"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="••••••••"
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
-              {errors.password && (
-                <p className="text-sm text-red-600">{errors.password}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Must be at least 6 characters with uppercase, lowercase, and number
-              </p>
+              <p className="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
             </div>
 
-            {/* Confirm Password field */}
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.confirmPassword ? "border-red-500 bg-red-50" : "border-gray-300"
-                }`}
-                placeholder="••••••••"
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            {/* Role Field */}
-            <div className="space-y-2">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role <span className="text-red-600">*</span>
+              <label htmlFor="role" className="text-sm font-medium text-slate-300">
+                Role
               </label>
               <select
                 id="role"
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary transition-all ${
-                  errors.role ? "border-red-500" : "border-gray-400"
-                }`}
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
-                <option value="">Select a role</option>
-                <option value="DEV">Developer</option>
-                <option value="QA">Quality Analyst</option>
-                <option value="BA">Business Analyst</option>
-                <option value="PM">Product Manager</option>
-                <option value="TM">Technical Manager</option>
+                {roleOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-slate-800">
+                    {opt.label}
+                  </option>
+                ))}
               </select>
-              {errors.role && (
-                <p className="text-sm text-red-600">{errors.role}</p>
-              )}
+              <p className="text-xs text-slate-500 mt-1">Select your role on the team</p>
             </div>
 
-            {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-black text-white hover:bg-gray-600" 
-              disabled={isLoading}
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition disabled:opacity-50 mt-6"
             >
-              {isLoading ? "Creating account..." : "Register"}
+              {loading ? "Creating account..." : "Create Account"}
             </Button>
+          </form>
 
-            {/* Link to Login */}
-            <p className="text-sm text-center text-muted-foreground">
+          <div className="mt-6 pt-6 border-t border-slate-700">
+            <p className="text-center text-slate-400 text-sm">
               Already have an account?{" "}
               <Link 
                 to="/login" 
-                className="text-primary hover:underline font-medium"
+                className="text-blue-400 hover:text-blue-300 font-semibold transition"
               >
-                Login here
+                Sign in
               </Link>
             </p>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>

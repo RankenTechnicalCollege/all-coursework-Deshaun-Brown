@@ -1,18 +1,8 @@
 import axios from "axios";
 
-// Normalize axios errors into a user-friendly message
 const parseError = (err: unknown): string => {
   if (axios.isAxiosError(err)) {
-    if (err.code === "ERR_NETWORK" || err.message?.toLowerCase().includes("network")) {
-      return "Cannot reach the API server. Is it running and is VITE_API_URL correct?";
-    }
-    if (err.response) {
-      return (
-        (err.response.data as any)?.error ||
-        (err.response.data as any)?.message ||
-        `Request failed with status ${err.response.status}`
-      );
-    }
+    return (err.response?.data as any)?.error || "Request failed";
   }
   return (err as any)?.message || "Unexpected error";
 };
@@ -22,58 +12,37 @@ const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Let the UI decide what to do
-      return Promise.reject({
-        ...error,
-        isAuthError: true,
-      });
-    }
-    return Promise.reject(error);
-  }
-);
+export interface AuthResponse {
+  success: boolean;
+  data?: any;
+  error?: { message: string };
+}
 
-export interface SignInPayload {
+export async function signIn(payload: {
   email: string;
   password: string;
+}): Promise<AuthResponse> {
+  try {
+    await api.post("/api/users/sign-in/email", payload);
+    const session = await getSession();
+    return { success: true, data: session };
+  } catch (err) {
+    return { success: false, error: { message: parseError(err) } };
+  }
 }
-export interface SignUpPayload {
+
+export async function signUp(payload: {
   name: string;
   email: string;
   password: string;
   role: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  data?: any;
-  error?: {
-    message: string;
-  };
-}
-
-export async function signIn(payload: SignInPayload): Promise<AuthResponse> {
+}): Promise<AuthResponse> {
   try {
-    await api.post("/api/auth/sign-in/email", payload);
-    const sessionData = await getSession();
-    return { success: true, data: sessionData };
-  } catch (err: any) {
-    const msg = parseError(err);
-    return { success: false, error: { message: msg } };
-  }
-}
-
-export async function signUp(payload: SignUpPayload): Promise<AuthResponse> {
-  try {
-    await api.post("/api/auth/sign-up/email", payload);
-    const sessionData = await getSession();
-    return { success: true, data: sessionData };
-  } catch (err: any) {
-    const msg = parseError(err);
-    return { success: false, error: { message: msg } };
+    await api.post("/api/users/sign-up/email", payload);
+    const session = await getSession();
+    return { success: true, data: session };
+  } catch (err) {
+    return { success: false, error: { message: parseError(err) } };
   }
 }
 
